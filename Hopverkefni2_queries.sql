@@ -4,7 +4,10 @@ select 1 as Query; -Viktoría
 
 select 2 as Query; -Ástþór
 
--- select ...
+SELECT location
+FROM Locations
+WHERE caseCount >= 1
+ORDER BY location ASC;
 
 select 3 as Query; -Ingó
 
