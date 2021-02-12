@@ -1,25 +1,19 @@
-SELECT
-    1 as Query;
+SELECT 1 AS Query; 
 
-SELECT LocationID, location
-FROM Locations
-ORDER BY
-    location DESC;
+SELECT L.LocationID, L.location
+FROM Locations L
+ORDER BY L.location DESC; 
 
-SELECT
-    2 as Query;
 
-SELECT
-    location
-FROM
-    Locations
-WHERE
-    caseCount >= 1
-ORDER BY
-    location ASC;
+SELECT 2 as Query; 
 
-SELECT
-    3 as Query;
+SELECT location
+FROM Locations 
+WHERE caseCount >= 1
+ORDER BY location ASC;
+
+
+SELECT 3 as Query;
 
 SELECT
     COUNT(*)
@@ -35,89 +29,66 @@ WHERE
             gender = 'Female'
     );
 
-SELECT
-    4 as Query;
 
-SELECT
-    P.name
-FROM
-    People P
-    INNER JOIN Agents A ON A.secretIdentity = P.PersonID
-    INNER JOIN InvolvedIn I ON I.AgentID = A.AgentID
-GROUP BY
-    P.PersonID
-HAVING
-    COUNT(I.AgentID) > 10;
+SELECT 4 as Query; 
 
-SELECT
-    5 as Query;
+SELECT P.name
+FROM People P 
+INNER JOIN Agents A ON A.secretIdentity = P.PersonID
+INNER JOIN InvolvedIn I ON I.AgentID = A.AgentID
+GROUP BY P.PersonID
+HAVING COUNT(I.AgentID) > 10;
 
-SELECT
-    P.PersonID,
-    P.name,
-    C.title
-FROM
-    People P
-    JOIN Cases C ON P.LocationID = C.LocationID
-    JOIN InvolvedIn I ON P.PersonID = I.PersonID
-WHERE
-    I.isCulprit = TRUE;
 
-SELECT
-    6 as Query;
+SELECT 5 as Query; 
+
+SELECT P.PersonID, P.name, C.title 
+FROM People P 
+INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
+INNER JOIN Cases C ON I.CaseID = C.CaseID
+WHERE I.isCulprit = TRUE AND P.LocationID = C.LocationID;
+
+
+SELECT 6 as Query; 
 
 SELECT
     P.personID,
     P.name,
-    P.genderID
+    G.gender
 FROM
     People as P
     INNER JOIN Cases AS C ON C.locationid = 33
     INNER JOIN Agents AS A on C.agentid = A.agentid
+    INNER JOIN Genders AS G ON P.GenderID = G.GenderID
 WHERE
     A.secretIdentity = P.PersonID;
 
-SELECT
-    7 as Query;
 
-SELECT
-    P.PersonID,
-    P.name,
-    P.ProfessionID,
-    COUNT(I.PersonID) AS numcases
-FROM
-    People P
-    INNER JOIN Professions PR ON P.ProfessionID = PR.ProfessionID
-    INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
-    INNER JOIN Cases C ON C.CaseID = I.CaseID
-GROUP BY
-    P.PersonID,
-    PR.ProfessionID,
-    C.isClosed
-HAVING
-    PR.description LIKE '% therapist'
-    AND C.isClosed = false;
+SELECT 7 as Query;
 
-SELECT
-    8 as Query;
+SELECT P.PersonID, P.name, PR.description, COUNT(C.CaseID) AS numcases
+FROM People P
+INNER JOIN Professions PR ON P.ProfessionID = PR.ProfessionID
+INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID 
+INNER JOIN Cases C ON C.CaseID = I.CaseID
+GROUP BY P.PersonID, PR.description, C.isClosed
+HAVING PR.description LIKE '% therapist' AND C.isClosed = FALSE;
 
-SELECT
-    A.codename,
-    G.gender,
-    P.password
-FROM
-    Agents A
-    JOIN Genders G ON A.GenderID = G.GenderID
-    JOIN Passwords P ON A.AgentID = P.AgentID
-WHERE
-    P.password LIKE CONCAT('%', A.codename, '%');
 
-SELECT
-    9 as Query;
+SELECT 8 as Query; 
 
-SELECT
-    DISTINCT P.PersonID,
-    P.name,
+SELECT A.codename, G.gender, P.password
+FROM Agents A
+JOIN Genders G
+ON A.GenderID = G.GenderID
+JOIN Passwords P
+ON A.AgentID = P.AgentID
+WHERE P.password LIKE CONCAT('%',A.codename,'%');
+
+
+SELECT 9 as Query; 
+
+SELECT P.PersonID, P.name,
     CASE
         WHEN (I.isCulprit = true) THEN 'guilty'
         ELSE 'not guilty'
@@ -135,21 +106,13 @@ HAVING
     COUNT(I.CaseID) >= 2
     AND L.Location LIKE '%vogur';
 
-SELECT
-    10 as Query;
+SELECT 10 as Query; 
 
-SELECT
-    P.PersonID,
-    P.name,
-    G.gender,
-    2045 - MAX(C.year) AS yearsSinceLastInvestigation
-FROM
-    People AS P
-    INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
-    INNER JOIN Genders G ON P.GenderID = G.GenderID
-    INNER JOIN Cases C ON I.CaseID = C.CaseID
-GROUP BY
-    P.PersonID,
-    G.gender
-HAVING
-    COUNT(DISTINCT I.AgentID) = 3;
+SELECT P.PersonID, P.name, G.gender, 2045 - MAX(C.year) AS yearsSinceLastInvestigation
+FROM People AS P
+INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
+INNER JOIN Genders G ON P.GenderID = G.GenderID
+INNER JOIN Cases C ON I.CaseID = C.CaseID
+GROUP BY P.PersonID, G.gender
+HAVING COUNT(DISTINCT I.AgentID) = 3;
+
