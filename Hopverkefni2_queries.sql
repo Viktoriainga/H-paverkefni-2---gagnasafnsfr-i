@@ -19,7 +19,14 @@ select 4 as Query; --Viktoría
 
 select 5 as Query; --Ástþór
 
--- select ...
+SELECT P.PersonID, P.name, C.title
+FROM People P
+JOIN Cases C 
+ON P.LocationID = C.LocationID
+JOIN InvolvedIn I
+ON P.PersonID = I.PersonID
+WHERE I.isCulprit = TRUE
+
 
 select 6 as Query; --Ingó
 
