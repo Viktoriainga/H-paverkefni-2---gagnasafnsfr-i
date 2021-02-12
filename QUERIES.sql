@@ -64,10 +64,6 @@ FROM
 WHERE
     A.secretIdentity = P.PersonID;
 
-SELECT ProfessionID
-FROM Professions
-WHERE description LIKE '% therapist';
-
 
 select 7 as Query;
 SELECT P.PersonID, P.name, P.ProfessionID, COUNT(I.PersonID) AS numcases
@@ -123,3 +119,4 @@ INNER JOIN Genders G ON P.GenderID = G.GenderID
 INNER JOIN Cases C ON I.CaseID = C.CaseID
 GROUP BY P.PersonID, G.gender
 HAVING COUNT(DISTINCT I.AgentID) = 3;
+
