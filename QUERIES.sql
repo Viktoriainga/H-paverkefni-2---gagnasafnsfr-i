@@ -87,6 +87,7 @@ WHERE P.password LIKE CONCAT('%',A.codename,'%');
 
 
 select 9 as Query; 
+
 SELECT P.PersonID, P.name 
 SELECT
     DISTINCT P.PersonID,
@@ -117,3 +118,4 @@ INNER JOIN Genders G ON P.GenderID = G.GenderID
 INNER JOIN Cases C ON I.CaseID = C.CaseID
 GROUP BY P.PersonID, G.gender
 HAVING COUNT(DISTINCT I.AgentID) = 3;
+
