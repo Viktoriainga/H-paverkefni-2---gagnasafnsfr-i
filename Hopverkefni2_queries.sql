@@ -38,7 +38,13 @@ select 7 as Query; --Viktoría
 
 select 8 as Query; --Ástþór
 
--- select ...
+SELECT A.codename, G.gender, P.password
+FROM Agents A
+JOIN Genders G
+ON A.GenderID = G.GenderID
+JOIN Passwords P
+ON A.AgentID = P.AgentID
+WHERE P.password LIKE CONCAT('%',A.codename,'%')
 
 select 9 as Query; --Ingó
 
