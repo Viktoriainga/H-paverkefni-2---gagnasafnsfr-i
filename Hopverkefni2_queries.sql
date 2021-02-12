@@ -1,24 +1,36 @@
-select 1 as Query; --Viktoría
+select 1 as Query; 
 
 SELECT LocationID, location
 FROM Locations 
 ORDER BY location DESC; 
--- ****** Stendur að það eigi að vera descending? en ef ég geri DSC þá kemur aftast fyrst? Vil ég ekki ASC?
 
-select 2 as Query; --Ástþór
 
--- select ...
+select 2 as Query; 
 
-select 3 as Query; --Ingó
+SELECT location
+FROM Locations
+WHERE caseCount >= 1
+ORDER BY location ASC;
 
--- select ...
 
-select 4 as Query; --Viktoría
+select 3 as Query;
 
---SELECT name
---FROM PersonID JOIN InvolvedIn
---ON AgentID = PersonID
---WHERE InvolvedIn.AgentID > 10;
+SELECT
+    COUNT(*)
+FROM
+    people
+WHERE
+    genderid = (
+        SELECT
+            GenderID
+        FROM
+            Genders
+        WHERE
+            gender = 'Female'
+    );
+
+
+select 4 as Query; 
 
 SELECT P.name
 FROM People P 
@@ -28,23 +40,36 @@ GROUP BY P.PersonID
 HAVING COUNT(I.AgentID) > 10;
 
 
--- ******** á hérna að vera GROUP BY til þess að hafa HAVING COUNT (I.agentID) > 10;? Á ég að hafa HAVING COUNT (*)?
--- ******** Hvernig vel ég fyrir GROUP BY? Skil ekki almennilega hvað það er einu sinni
--- select ...
+select 5 as Query; 
 
-select 5 as Query; --Ástþór
+SELECT P.PersonID, P.name, C.title
+FROM People P
+JOIN Cases C 
+ON P.LocationID = C.LocationID
+JOIN InvolvedIn I
+ON P.PersonID = I.PersonID
+WHERE I.isCulprit = TRUE;
 
--- select ...
 
-select 6 as Query; --Ingó
+select 6 as Query; 
 
--- select ...
+SELECT
+    P.personID,
+    P.name,
+    P.genderID
+FROM
+    People as P
+    INNER JOIN Cases AS C ON C.locationid = 33
+    INNER JOIN Agents AS A on C.agentid = A.agentid
+WHERE
+    A.secretIdentity = P.PersonID;
 
 SELECT ProfessionID
 FROM Professions
 WHERE description LIKE '% therapist'
 
-select 7 as Query; --Viktoría
+
+select 7 as Query;
 SELECT P.PersonID, P.name, P.ProfessionID, COUNT(I.PersonID) AS numcases
 FROM People P
 INNER JOIN Professions PR ON P.ProfessionID = PR.ProfessionID
@@ -54,37 +79,46 @@ GROUP BY P.PersonID, PR.ProfessionID, C.isClosed
 HAVING PR.description LIKE '% therapist' AND C.isClosed = false;
 
 
+select 8 as Query; 
 
--- Hvað er að gerast hér? (fengið af w3schools)
--- SELECT Orders.OrderID, Customers.CustomerName, Shippers.ShipperName
--- FROM ((Orders
--- INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID)
--- INNER JOIN Shippers ON Orders.ShipperID = Shippers.ShipperID);
+SELECT A.codename, G.gender, P.password
+FROM Agents A
+JOIN Genders G
+ON A.GenderID = G.GenderID
+JOIN Passwords P
+ON A.AgentID = P.AgentID
+WHERE P.password LIKE CONCAT('%',A.codename,'%');
 
 
-select 8 as Query; --Ástþór
-
--- select ...
-
-select 9 as Query; --Ingó
-
+select 9 as Query; 
 SELECT P.PersonID, P.name 
+SELECT
+    DISTINCT P.PersonID,
+    P.name,
+    I.isCulprit,
+    CASE
+        WHEN (I.isCulprit = true) THEN 'guilty'
+        ELSE 'not guilty'
+    END AS hasBeenCulprit
+FROM
+    People P
+    INNER JOIN InvolvedIN AS I ON I.PersonID = P.PersonID
+    INNER JOIN Cases AS C ON C.CaseID = I.CaseID
+    INNER JOIN Locations AS L ON C.locationid = L.locationid
+GROUP BY
+    P.PersonID,
+    L.LocationID,
+    I.isCulprit
+HAVING
+    COUNT(I.CaseID) >= 2
+    AND L.Location LIKE '%vogur';
 
--- select ...
+select 10 as Query; 
 
-select 10 as Query; --Viktoría
 SELECT P.PersonID, P.name, G.gender, 2045 - MAX(C.year) AS yearsSinceLastInvestigation
 FROM People AS P
 INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
 INNER JOIN Genders G ON P.GenderID = G.GenderID
 INNER JOIN Cases C ON I.CaseID = C.CaseID
---INNER JOIN Agents A ON A.AgentID = I.AgentID
 GROUP BY P.PersonID, G.gender
 HAVING COUNT(DISTINCT I.AgentID) = 3;
-
--- ******** Hvernig tel ég án þess að hafa dálk fyrir count?
-
--- select ...
-
-SELECT *
-FROM Locations;
