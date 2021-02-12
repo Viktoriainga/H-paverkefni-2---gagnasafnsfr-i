@@ -66,7 +66,7 @@ WHERE
 
 SELECT ProfessionID
 FROM Professions
-WHERE description LIKE '% therapist'
+WHERE description LIKE '% therapist';
 
 
 select 7 as Query;
@@ -91,6 +91,7 @@ WHERE P.password LIKE CONCAT('%',A.codename,'%');
 
 
 select 9 as Query; 
+
 SELECT P.PersonID, P.name 
 SELECT
     DISTINCT P.PersonID,
