@@ -1,14 +1,14 @@
 select 1 as Query; 
 
-SELECT LocationID, location
-FROM Locations 
-ORDER BY location DESC; 
+SELECT L.LocationID, L.location
+FROM Locations L
+ORDER BY L.location DESC; 
 
 
 select 2 as Query; 
 
 SELECT location
-FROM Locations
+FROM Locations 
 WHERE caseCount >= 1
 ORDER BY location ASC;
 
@@ -42,13 +42,11 @@ HAVING COUNT(I.AgentID) > 10;
 
 select 5 as Query; 
 
-SELECT P.PersonID, P.name, C.title
-FROM People P
-JOIN Cases C 
-ON P.LocationID = C.LocationID
-JOIN InvolvedIn I
-ON P.PersonID = I.PersonID
-WHERE I.isCulprit = TRUE;
+SELECT P.PersonID, P.name, C.title 
+FROM People P 
+INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
+INNER JOIN Cases C ON I.CaseID = C.CaseID
+WHERE I.isCulprit = TRUE AND P.LocationID = C.LocationID;
 
 
 select 6 as Query; 
@@ -56,27 +54,25 @@ select 6 as Query;
 SELECT
     P.personID,
     P.name,
-    P.genderID
+    G.gender
 FROM
     People as P
     INNER JOIN Cases AS C ON C.locationid = 33
     INNER JOIN Agents AS A on C.agentid = A.agentid
+    INNER JOIN Genders AS G ON P.GenderID = G.GenderID
 WHERE
     A.secretIdentity = P.PersonID;
 
-SELECT ProfessionID
-FROM Professions
-WHERE description LIKE '% therapist'
-
 
 select 7 as Query;
-SELECT P.PersonID, P.name, P.ProfessionID, COUNT(I.PersonID) AS numcases
+
+SELECT P.PersonID, P.name, PR.description, COUNT(C.CaseID) AS numcases
 FROM People P
 INNER JOIN Professions PR ON P.ProfessionID = PR.ProfessionID
-INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
+INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID 
 INNER JOIN Cases C ON C.CaseID = I.CaseID
-GROUP BY P.PersonID, PR.ProfessionID, C.isClosed
-HAVING PR.description LIKE '% therapist' AND C.isClosed = false;
+GROUP BY P.PersonID, PR.description, C.isClosed
+HAVING PR.description LIKE '% therapist' AND C.isClosed = FALSE;
 
 
 select 8 as Query; 
@@ -94,8 +90,7 @@ select 9 as Query;
 SELECT P.PersonID, P.name 
 SELECT
     DISTINCT P.PersonID,
-    P.name,
-    I.isCulprit,
+    P.name
     CASE
         WHEN (I.isCulprit = true) THEN 'guilty'
         ELSE 'not guilty'
