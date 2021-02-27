@@ -12615,6 +12615,14 @@ VALUES
 (9999, 'Áshildur Albertsdóttir', 1175, 1, 52),
 (10000, 'Dagfinnur Finnbogason', 937, 2, 26);
 
+/*INSERT INTO People
+VALUES (10003, 'Birkir Björns', 937, 1, 26);
+
+INSERT INTO Agents 
+VALUES (120, 'The man', '0101', TRUE, 'active', 10003, 1); */
+
+
+
 INSERT INTO Agents
 VALUES
 (1, 'Passenger', '0001', TRUE, 'active', 9010, 3),

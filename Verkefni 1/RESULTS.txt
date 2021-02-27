@@ -97,6 +97,8 @@
          79 | Akranes
 (90 rows)
 
+
+
  query 
 -------
      2
@@ -185,6 +187,8 @@
  Vopnafjörður
 (79 rows)
 
+
+
  query 
 -------
      3
@@ -194,6 +198,8 @@
 -------
   4712
 (1 row)
+
+
 
  query 
 -------
@@ -247,6 +253,8 @@
  Eygló Bernódusdóttir
 (43 rows)
 
+
+
  query 
 -------
      5
@@ -258,6 +266,8 @@
      9304 | Ingvi G. Guðbrandsson | The case of a beast
      9989 | Aðalsteinn Sturluson  | Shaman in my school
 (3 rows)
+
+
 
  query 
 -------
@@ -271,6 +281,8 @@
      8847 | Ólafur S. Hermannsson  | Male
 (3 rows)
 
+
+
  query 
 -------
      7
@@ -279,6 +291,8 @@
  personid | name | description | numcases 
 ----------+------+-------------+----------
 (0 rows)
+
+
 
  query 
 -------
@@ -309,6 +323,8 @@
  Watchman  | Other  | Bee2yWatchmanee2gae
 (20 rows)
 
+
+
  query 
 -------
      9
@@ -319,6 +335,8 @@
      8417 | Krista Ingveldardóttir | guilty
      6174 | Þórðr Maríasson        | not guilty
 (2 rows)
+
+
 
  query 
 -------
@@ -331,4 +349,3 @@
      2430 | Salóme P. Indriðadóttir | Female |                           3
      6174 | Þórðr Maríasson         | Male   |                           3
 (3 rows)
-
