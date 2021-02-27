@@ -1,3 +1,5 @@
+CREATE DATABASE PIII
+
 select 1 as Query;
 
 -- select ...
