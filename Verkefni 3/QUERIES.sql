@@ -1,42 +1,42 @@
 CREATE DATABASE PIII
 
-select 1 as Query;
+select 1 as Query; -- Vikta
 
 -- select ...
 
-select 2 as Query;
+select 2 as Query; -- Ingo
 
 -- select ...
 
-select 3 as Query;
+select 3 as Query; -- Asi
 
 -- select ...
 
-select 4 as Query;
+select 4 as Query; -- Vikta
 
 -- select ...
 
-select 5 as Query;
+select 5 as Query; -- Ingo
 
 -- select ...
 
-select 6 as Query;
+select 6 as Query; -- Asi
 
 -- select ...
 
-select 7 as Query;
+select 7 as Query; -- Vikta
 
 -- select ...
 
-select 8 as Query;
+select 8 as Query; -- Ingo
 
 -- select ...
 
-select 9 as Query;
+select 9 as Query; -- Asi
 
 -- select ...
 
-select 10 as Query;
+select 10 as Query; -- Alles
 
 -- select ...
 
