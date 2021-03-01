@@ -10,7 +10,10 @@ select 2 as Query; -- Ingo
 
 select 3 as Query; -- Asi
 
--- select ...
+SELECT A.codename
+FROM Agents A
+INNER JOIN 
+
 
 select 4 as Query; -- Vikta
 
