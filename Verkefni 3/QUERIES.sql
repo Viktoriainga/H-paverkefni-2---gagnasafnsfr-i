@@ -110,8 +110,6 @@ HAVING I.PersonID = MAX(
     ( SELECT COUNT(I2.PersonID)
       FROM InvolvedIn I2 )
 );
-    
-
 
 select 8 as Query; -- Ingo
 
