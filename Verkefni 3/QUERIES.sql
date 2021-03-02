@@ -17,6 +17,7 @@ INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
 INNER JOIN Cases C ON I.CaseID = C.CaseID
 INNER JOIN Locations L2 ON L2.LocationID = C.LocationID 
 WHERE SUBSTRING(L1.location, 1,1) = SUBSTRING(L2.Location, 1,1);
+
 select 2 as Query; -- Ingo
 
 SELECT P.personID, P.name
@@ -64,7 +65,14 @@ FROM People P
 
 select 8 as Query; -- Ingo
 
--- select ...
+SELECT A.designation, A.codename
+FROM Agents A
+WHERE A.agentID NOT IN (
+    SELECT C.agentID
+    INNER JOIN Locations L ON C.LocationID = L.LocationID
+    INNER JOIN Agents A on A.agentID = C.agentID
+    WHERE L.location = 'Akranes'
+)
 
 select 9 as Query; -- Asi
 
