@@ -82,6 +82,7 @@ SELECT A.designation, A.codename
 FROM Agents A
 WHERE A.agentID NOT IN (
     SELECT C.agentID
+    FROM Cases C
     INNER JOIN Locations L ON C.LocationID = L.LocationID
     INNER JOIN Agents A on A.agentID = C.agentID
     WHERE L.location = 'Akranes'
