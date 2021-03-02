@@ -18,8 +18,20 @@ INNER JOIN Cases C ON I.CaseID = C.CaseID
 INNER JOIN Locations L2 ON L2.LocationID = C.LocationID 
 WHERE SUBSTRING(L1.location, 1,1) = SUBSTRING(L2.Location, 1,1);
 
+
 select 2 as Query; -- Ingo
--- select ...
+
+SELECT P.personID, P.name
+FROM People P
+INNER JOIN InvolvedIn AS I ON I.personID = P.personID
+WHERE P.GenderID = 1
+UNION
+SELECT P.personID, P.name
+FROM People P 
+INNER JOIN Agents AS A ON A.secretIdentity = P.personID
+WHERE P.GenderID = 2
+ORDER BY personID ASC
+
 
 select 3 as Query; -- Asi
 
@@ -103,7 +115,14 @@ HAVING I.PersonID = MAX(
 
 select 8 as Query; -- Ingo
 
--- select ...
+SELECT A.designation, A.codename
+FROM Agents A
+WHERE A.agentID NOT IN (
+    SELECT C.agentID
+    INNER JOIN Locations L ON C.LocationID = L.LocationID
+    INNER JOIN Agents A on A.agentID = C.agentID
+    WHERE L.location = 'Akranes'
+)
 
 select 9 as Query; -- Asi
 
