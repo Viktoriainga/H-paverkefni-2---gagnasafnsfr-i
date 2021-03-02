@@ -61,7 +61,13 @@ select 9 as Query; -- Asi
 
 -- select ...
 
-select 10 as Query; -- Alles
+select 10 as Query; 
+
+SELECT C.CaseID, C.title, L.location 
+FROM Cases C 
+INNER JOIN Locations L ON C.LocationID = L.LocationID
+LEFT JOIN InvolvedIn I ON I.CaseID = C.CaseID
+WHERE I.CaseID IS NULL; 
 
 -- select ...
 
