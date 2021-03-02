@@ -58,5 +58,9 @@ INNER JOIN Cases C ON C.CaseID = I.CaseID
 
 select 10 as Query; -- Alles
 
--- select ...
+SELECT C.CaseID, C.title, L.location
+
+SELECT I.PersonID, C.title
+FROM Cases C
+INNER JOIN InvolvedIn I ON C.CaseID = I.CaseID
 
