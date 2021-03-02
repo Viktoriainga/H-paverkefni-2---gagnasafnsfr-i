@@ -6,7 +6,16 @@ select 1 as Query; -- Vikta
 
 select 2 as Query; -- Ingo
 
--- select ...
+SELECT P.personID, P.name
+FROM People P
+INNER JOIN InvolvedIn AS I ON I.personID = P.personID
+WHERE P.GenderID = 1
+UNION
+SELECT P.personID, P.name
+FROM People P 
+INNER JOIN Agents AS A ON A.secretIdentity = P.personID
+WHERE P.GenderID = 2
+ORDER BY personID ASC
 
 select 3 as Query; -- Asi
 
@@ -38,5 +47,7 @@ select 9 as Query; -- Asi
 
 select 10 as Query; -- Alles
 
--- select ...
+SELECT caseid
+FROM InvolvedIn
+WHERE personID IS null
 
