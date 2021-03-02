@@ -23,7 +23,18 @@ select 2 as Query; -- Ingo
 
 select 3 as Query; -- Asi
 
--- select ...
+SELECT A.codename
+FROM A.Agents
+WHERE
+    secretIdentity IN(
+        SELECT A2.secretIdentity
+        FROM Agents A2
+        NATURAL JOIN InvolvedIn I1
+        INTERSECT
+        SELECT I2.PersonID
+        FROM InvolvedIn I2
+        WHERE I2.isCulprit = TRUE);
+
 
 select 4 as Query; -- Vikta
 SELECT A.codename, P.name, A.designation 
@@ -45,7 +56,9 @@ select 5 as Query; -- Ingo
 
 select 6 as Query; -- Asi
 
--- select ...
+SELECT A.codename, A.designation
+FROM Agents A
+
 
 select 7 as Query; -- Vikta
 SELECT P.PersonID, P.name, PR.description
@@ -59,7 +72,14 @@ select 8 as Query; -- Ingo
 
 select 9 as Query; -- Asi
 
--- select ...
+SELECT C.CaseID, C.title, L.location
+FROM Cases C 
+INNER JOIN Locations L ON C.LocationID = L.LocationID
+
+SELECT I.PersonID
+FROM InvolvedIn I
+INNER JOIN Cases C ON C.CaseID = I.CaseID
+
 
 select 10 as Query; 
 
@@ -69,5 +89,9 @@ INNER JOIN Locations L ON C.LocationID = L.LocationID
 LEFT JOIN InvolvedIn I ON I.CaseID = C.CaseID
 WHERE I.CaseID IS NULL; 
 
--- select ...
+SELECT C.CaseID, C.title, L.location
+
+SELECT I.PersonID, C.title
+FROM Cases C
+INNER JOIN InvolvedIn I ON C.CaseID = I.CaseID
 
