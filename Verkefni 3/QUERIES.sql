@@ -184,7 +184,6 @@ HAVING COUNT(P.PersonID) > (
     ( SELECT COUNT(I2.PersonID)
       FROM InvolvedIn I2 )
       INNER JOIN People P2 ON P2.PersonID = I2.PersonID
-
 );
 -- sub query sem skoðar hvert casecount fyrir hverja person fyrir hvert location
 --group by personid og location 
@@ -204,36 +203,7 @@ WHERE A.agentID NOT IN (
 
 select 9 as Query;
 
-SELECT C.CaseID, C.title, L.location
-FROM Cases C 
-INNER JOIN Locations L ON C.LocationID = L.LocationID
 
-SELECT I.PersonID, I.CaseID ,P.GenderID
-FROM InvolvedIn I
-INNER JOIN People P ON P.PersonID = I.PersonID
-GROUP BY I.CaseID, P.GenderID
-HAVING COUNT( DISTINCT P.GenderID) = 3
-
-
-SELECT I2.CaseID
-FROM InvolvedIn I2
-INNER JOIN 
-HAVING COUNT(DISTINCT G.GenderID) = (
-    SELECT DISTINCT COUNT(P.GenderID), I.CaseID
-    FROM People P
-    INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
-    GROUP BY I.CaseID)
-
-
-SELECT I.CaseID 
-FROM InvolvedIn I 
-INNER JOIN People P ON P.PersonID = I.PersonID
-INNER JOIN Cases C ON C.CaseID = I.CaseID 
-GROUP BY P.GenderID, I.CaseID
-HAVING COUNT (DISTINCT P.GenderID) = (
-    SELECT DISTINCT COUNT(G.GenderID)
-    FROM Genders G 
-);
 
 select 10 as Query; 
 
