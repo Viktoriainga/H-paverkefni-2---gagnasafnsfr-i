@@ -66,29 +66,22 @@ select 6 as Query; -- Asi
 
 SELECT A.codename, A.designation
 FROM Agents A
-INNER JOIN Cases C1 ON C1.AgentID = A.AgentID
-WHERE C1.CaseID IN(
+INNER JOIN Cases C2 ON C2.AgentID = A.AgentID
+WHERE C2.CaseID IN(
     SELECT C.CaseID
     FROM Locations L
     INNER JOIN Cases C ON L.LocationID = C.LocationID
-    WHERE C.year = (SELECT MIN(C.year)
-    FROM Cases C));
-
-SELECT C.CaseID
-FROM Locations L
-INNER JOIN Cases C ON L.LocationID = C.LocationID
-WHERE C.year = (SELECT MIN(C.year)
-    FROM Cases C);
-
-SELECT A.AgentID
-FROM Agents A
-INNER JOIN Cases C ON C.AgentID = A.AgentID
-GROUP BY A.AgentID
-HAVING COUNT( DISTINCT C.LocationID) = 2;
-
-SELECT L.LocationID, L.Location
-FROM Locations L
-INNER JOIN Cases C ON C.LocationID = L.LocationID
+    WHERE C.year = (
+        SELECT MIN(C1.year)
+        FROM Cases C1
+        WHERE L.LocationID = C1.LocationID
+        GROUP BY C.LocationID))
+AND A.codename IN(
+    SELECT A.codename
+    FROM Agents A
+    INNER JOIN Cases C ON C.AgentID = A.AgentID
+    GROUP BY A.codename
+    HAVING COUNT( DISTINCT C.LocationID) = 2);
 
 /*
 Show the ID, name and profession of People
