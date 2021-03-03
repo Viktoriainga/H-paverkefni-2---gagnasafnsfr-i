@@ -181,9 +181,9 @@ INNER JOIN Cases C on C.CaseID = I.CaseID
 INNER JOIN Locations L on L.LocationID = C.LocationID
 GROUP BY P.PersonID, PR.description, I.PersonID, L.location
 HAVING COUNT(P.PersonID) > (
-    ( SELECT COUNT(I2.PersonID)
+    ( SELECT COUNT(*)
       FROM InvolvedIn I2 )
-      INNER JOIN People P2 ON P2.PersonID = I2.PersonID
+      --INNER JOIN People P2 ON P2.PersonID = I2.PersonID)
 );
 -- sub query sem skoðar hvert casecount fyrir hverja person fyrir hvert location
 --group by personid og location 
