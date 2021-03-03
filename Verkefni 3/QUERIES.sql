@@ -142,4 +142,8 @@ INNER JOIN Locations L ON C.LocationID = L.LocationID
 LEFT JOIN InvolvedIn I ON I.CaseID = C.CaseID
 WHERE I.CaseID IS NULL; 
 
+SELECT 11 AS Query;
 
+SELECT * 
+FROM Locations
+WHERE Location = 'Gervivogur'
