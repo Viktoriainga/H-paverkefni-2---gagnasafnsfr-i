@@ -28,7 +28,7 @@ ORDER BY personID ASC
 select 3 as Query; -- Asi
 
 SELECT A.codename
-FROM A.Agents
+FROM Agents A 
 WHERE
     secretIdentity IN(
         SELECT A2.secretIdentity
@@ -56,8 +56,31 @@ INTERSECT
 SELECT A.secretIdentity, C.CaseID
 FROM Agents A
 INNER JOIN Cases C ON A.AgentID = C.AgentID;
+
+SELECT DISTINCT A.codename
+FROM Agents A
+--INNER JOIN InvolvedIn I1 ON A.AgentID = I1.AgentID 
+INNER JOIN People P ON P.PersonID = A.secretIdentity
+INNER JOIN Cases C ON C.AgentID = A.AgentID 
+INNER JOIN InvolvedIn I ON C.CaseID = I.CaseID
+--INNER JOIN InvolvedIn I2 ON P.PersonID = I2.PersonID
+INNER JOIN People P2 ON P2.PersonID = I.PersonID
+WHERE I.isCulprit = TRUE AND P.PersonID = P2.PersonID;
+
+INSERT INTO People
+VALUES (10005, 'jksdfjædsfkdsa', 1264, 2,9);
+
+INSERT INTO Agents 
+VALUES(106, 'eieieiei', '1012', FALSE, 'active', 10005, 2);
+
+INSERT INTO Cases 
+VALUES (1220, 'the case', TRUE, 2027, 106, 37);
+
+INSERT INTO InvolvedIn
+VALUES (10005, 1220, 106, TRUE);
+
 INSERT INTO People 
-VALUES (10002, 'Dagfddddinnur Finnbogason', 1264, 2, 9);
+VALUES (10005, 'Dagfddddinnur Finnbogason', 1264, 2, 9);
 
 INSERT INTO Agents
 VALUES (103, 'xxxxxxxxxxxx', '2117', FALSE, 'inactive', 10002, 3);
@@ -161,7 +184,7 @@ HAVING COUNT(P.PersonID) > (
     ( SELECT COUNT(I2.PersonID)
       FROM InvolvedIn I2 )
       INNER JOIN People P2 ON P2.PersonID = I2.PersonID
-      WHERE 
+
 );
 -- sub query sem skoðar hvert casecount fyrir hverja person fyrir hvert location
 --group by personid og location 
@@ -189,17 +212,28 @@ SELECT I.PersonID, I.CaseID ,P.GenderID
 FROM InvolvedIn I
 INNER JOIN People P ON P.PersonID = I.PersonID
 GROUP BY I.CaseID, P.GenderID
-HAVING COUNT( DISTINCT P.GenderID) =3
+HAVING COUNT( DISTINCT P.GenderID) = 3
 
 
 SELECT I2.CaseID
 FROM InvolvedIn I2
-WHERE I2.CaseID IN(
-    SELECT COUNT( DISTINCT P.GenderID), I.CaseID
+INNER JOIN 
+HAVING COUNT(DISTINCT G.GenderID) = (
+    SELECT DISTINCT COUNT(P.GenderID), I.CaseID
     FROM People P
     INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
     GROUP BY I.CaseID)
 
+
+SELECT I.CaseID 
+FROM InvolvedIn I 
+INNER JOIN People P ON P.PersonID = I.PersonID
+INNER JOIN Cases C ON C.CaseID = I.CaseID 
+GROUP BY P.GenderID, I.CaseID
+HAVING COUNT (DISTINCT P.GenderID) = (
+    SELECT DISTINCT COUNT(G.GenderID)
+    FROM Genders G 
+);
 
 select 10 as Query; 
 
