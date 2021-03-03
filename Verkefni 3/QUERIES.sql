@@ -47,6 +47,23 @@ WHERE
         FROM InvolvedIn I2
         WHERE I2.isCulprit = TRUE);
 
+FROM Agents A
+WHERE A.secretIdentity IN(
+    SELECT A2.secretIdentity
+    FROM Agents A2
+    NATURAL JOIN Cases C
+    INTERSECT
+    SELECT I2.PersonID
+    FROM InvolvedIn I2
+    WHERE I2.isCulprit = TRUE);
+
+SELECT I.PersonID, I.CaseID
+FROM InvolvedIn I
+WHERE I.isCulprit = TRUE
+INTERSECT
+SELECT A.secretIdentity, C.CaseID
+FROM Agents A
+INNER JOIN Cases C ON A.AgentID = C.AgentID;
 
 select 4 as Query; -- Vikta
 SELECT A.codename, P.name, A.designation 
@@ -69,6 +86,18 @@ select 6 as Query; -- Asi
 
 SELECT A.codename, A.designation
 FROM Agents A
+
+SELECT L.Location, C.title, C.year
+FROM Locations L
+INNER JOIN Cases C ON L.LocationID = C.LocationID
+WHERE C.year = (SELECT MIN(C.year)
+    FROM Cases C);
+
+SELECT A.AgentID, C.LocationID
+FROM Agents A
+INNER JOIN Cases C ON C.AgentID = A.AgentID
+GROUP BY A.AgentID, C.LocationID
+HAVING COUNT( DISTINCT A.AgentID) = 2;
 
 /*
 Show the ID, name and profession of People
