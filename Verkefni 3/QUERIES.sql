@@ -30,7 +30,7 @@ SELECT P.personID, P.name
 FROM People P 
 INNER JOIN Agents AS A ON A.secretIdentity = P.personID
 WHERE P.GenderID = 2
-ORDER BY personID ASC
+ORDER BY personID ASC;
 
 
 select 3 as Query; -- Asi
@@ -52,18 +52,25 @@ select 4 as Query; -- Vikta
 SELECT A.codename, P.name, A.designation 
 FROM Agents A 
 INNER JOIN People P ON A.secretIdentity = P.PersonID
-WHERE A.killLicense = TRUE OR  (
+WHERE A.killLicense = TRUE OR A.AgentID IN (
     SELECT C.CaseID
     FROM Cases C 
     INNER JOIN Agents A ON A.AgentID = C.CaseID
     GROUP BY C.CaseID, A.AgentID
-    HAVING COUNT( DISTINCT C.LocationId) >=5
+    HAVING COUNT(DISTINCT C.LocationId) >=5
 ) > 0; 
 -- select ...
 
 select 5 as Query; -- Ingo
 
--- select ...
+SELECT A.codename, A.secretIdentity, A.designation
+FROM Agents A 
+WHERE A.agentID NOT IN (
+    SELECT A.agentID
+    FROM Agents A 
+    INNER JOIN Cases AS C ON C.agentID = A.agentID
+    INNER JOIN Locations AS L ON C.locationID = L.locationID
+);
 
 select 6 as Query; -- Asi
 
@@ -121,7 +128,7 @@ WHERE A.agentID NOT IN (
     INNER JOIN Locations L ON C.LocationID = L.LocationID
     INNER JOIN Agents A on A.agentID = C.agentID
     WHERE L.location = 'Akranes'
-)
+);
 
 select 9 as Query; -- Asi
 
