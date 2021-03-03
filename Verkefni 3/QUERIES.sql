@@ -1,8 +1,16 @@
 CREATE DATABASE PIII
 
-select 1 as Query;
+select 1 as Query; -- Vikta
+/*SELECT P.PersonID, P.Name
+FROM People P 
+INNER JOIN Locations L ON P.LocationID = L.LocationID
+WHERE LEFT(L.location, 1) == LEFT(
+    select L.location
+    FROM Locations L 
+    INNER JOIN Cases C ON C.LocationId = L.LocationId
+, 1)); */
 
-SELECT DISTINCT P.PersonID, P.name, C.title
+SELECT P.PersonID, P.name 
 FROM People P 
 INNER JOIN Locations L1 ON P.LocationID = L1.LocationID
 INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
@@ -11,7 +19,7 @@ INNER JOIN Locations L2 ON L2.LocationID = C.LocationID
 WHERE SUBSTRING(L1.location, 1,1) = SUBSTRING(L2.Location, 1,1);
 
 
-select 2 as Query; 
+select 2 as Query; -- Ingo
 
 SELECT P.personID, P.name
 FROM People P
@@ -28,7 +36,7 @@ ORDER BY personID ASC
 select 3 as Query; -- Asi
 
 SELECT A.codename
-FROM Agents A 
+FROM Agents A
 WHERE
     secretIdentity IN(
         SELECT A2.secretIdentity
@@ -52,78 +60,33 @@ WHERE A.secretIdentity IN(
 SELECT I.PersonID, I.CaseID
 FROM InvolvedIn I
 WHERE I.isCulprit = TRUE
-INTERSECT
+AND I.PersonID, I.CaseID IN(
+    SELECT A.secretIdentity, C.CaseID
+    FROM Agents A
+    INNER JOIN Cases C ON A.AgentID = C.AgentID)
+
 SELECT A.secretIdentity, C.CaseID
 FROM Agents A
 INNER JOIN Cases C ON A.AgentID = C.AgentID;
 
-SELECT DISTINCT A.codename
-FROM Agents A
---INNER JOIN InvolvedIn I1 ON A.AgentID = I1.AgentID 
-INNER JOIN People P ON P.PersonID = A.secretIdentity
-INNER JOIN Cases C ON C.AgentID = A.AgentID 
-INNER JOIN InvolvedIn I ON C.CaseID = I.CaseID
---INNER JOIN InvolvedIn I2 ON P.PersonID = I2.PersonID
-INNER JOIN People P2 ON P2.PersonID = I.PersonID
-WHERE I.isCulprit = TRUE AND P.PersonID = P2.PersonID;
-
-INSERT INTO People
-VALUES (10005, 'jksdfjædsfkdsa', 1264, 2,9);
-
-INSERT INTO Agents 
-VALUES(106, 'eieieiei', '1012', FALSE, 'active', 10005, 2);
-
-INSERT INTO Cases 
-VALUES (1220, 'the case', TRUE, 2027, 106, 37);
-
-INSERT INTO InvolvedIn
-VALUES (10005, 1220, 106, TRUE);
-
-INSERT INTO People 
-VALUES (10005, 'Dagfddddinnur Finnbogason', 1264, 2, 9);
-
-INSERT INTO Agents
-VALUES (103, 'xxxxxxxxxxxx', '2117', FALSE, 'inactive', 10002, 3);
-
-INSERT INTO Cases
-VALUES (1212, 'The Case Of The XXXX', TRUE, 2027, 103, 37);
-INSERT INTO Cases
-VALUES (1213, 'The Case Of The zzzX', TRUE, 2027, 103, 38);
-INSERT INTO Cases
-VALUES (1214, 'The Case Of The yyyX', TRUE, 2027, 103, 32);
-INSERT INTO Cases
-VALUES (1215, 'The Case Of The uuuXX', TRUE, 2027, 103, 31);
-INSERT INTO Cases
-VALUES (1216, 'The Case Of The aaaXX', TRUE, 2027, 103, 34);
-
-INSERT INTO InvolvedIn
-VALUES
-(10002, 1212, 102, TRUE);
-INSERT INTO InvolvedIn
-VALUES
-(10002, 1213, 103, TRUE),
-(10002, 1214, 103, TRUE),
-(10002, 1215, 103, TRUE),
-(10002, 1216, 103, TRUE);
-
-select 4 as Query; 
-
-SELECT DISTINCT A.codename, A.designation 
+select 4 as Query; -- Vikta
+SELECT A.codename, P.name, A.designation 
 FROM Agents A 
-INNER JOIN Cases C ON A.AgentID = C.AgentID
-WHERE C.AgentID IN (
-    SELECT C2.AgentID
-    FROM Cases C2
-    GROUP BY C2.AgentID
-    HAVING COUNT(DISTINCT C2.LocationId) >= 5
-) OR A.killLicense = TRUE;
+INNER JOIN People P ON A.secretIdentity = P.PersonID
+WHERE A.killLicense = TRUE OR  (
+    SELECT C.CaseID
+    FROM Cases C 
+    INNER JOIN Agents A ON A.AgentID = C.CaseID
+    GROUP BY C.CaseID, A.AgentID
+    HAVING COUNT( DISTINCT C.LocationId) >=5
+) > 0; 
+-- select ...
 
-
-select 5 as Query; 
+select 5 as Query; -- Ingo
 
 -- select ...
 
-select 6 as Query; 
+select 6 as Query; -- Asi
 
 SELECT A.codename, A.designation
 FROM Agents A
@@ -140,6 +103,9 @@ INNER JOIN Cases C ON C.AgentID = A.AgentID
 GROUP BY A.AgentID, C.LocationID
 HAVING COUNT( DISTINCT A.AgentID) = 2;
 
+SELECT L.LocationID
+FROM LOCATION 
+
 /*
 Show the ID, name and profession of People
 who have been involved in the most cases 
@@ -155,41 +121,33 @@ If you can print ‘yes’ and ‘no’
 instead of 1 and 0, all the better.
 */
 
-select 7 as Query; 
+select 7 as Query; -- Vikta
 SELECT P.PersonID, P.name, PR.description, COUNT(I.PersonID), L.location
 FROM People P 
 INNER JOIN InvolvedIn I ON I.PersonID = P.PersonID
 INNER JOIN Professions PR ON PR.ProfessionID = P.ProfessionID
 INNER JOIN Cases C ON C.CaseID = I.CaseID
-INNER JOIN Locations L ON L.LocationID = C.LocationID
+NATURAL JOIN Locations L ON L.LocationID = C.LocationID
 GROUP BY P.PersonID,P.name, PR.description, I.PersonID, L.location
-HAVING I.PersonID = MAX(I.PersonID);
+HAVING MAX(I.PersonID);
 
 
-SELECT P.PersonID, P.name, PR.description, I.PersonID, L.location, 
-CASE
-WHEN I.PersonID IN (
-        SELECT A.secretIdentity 
-        FROM Agents A )
-    THEN 'yes'
-    ELSE 'no' 
-END AS secretlyagent
+SELECT P.PersonID, P.name, PR.description, I.PersonID, L.location
 FROM People P
 INNER JOIN InvolvedIn I ON I.PersonID = P.PersonID
 INNER JOIN Professions PR ON PR.ProfessionID = P.ProfessionID
 INNER JOIN Cases C on C.CaseID = I.CaseID
 INNER JOIN Locations L on L.LocationID = C.LocationID
 GROUP BY P.PersonID, PR.description, I.PersonID, L.location
-HAVING COUNT(P.PersonID) > (
+/*HAVING P.PersonID IN (
+    SELECT A.secretIdentity 
+    FROM Agents A  */ 
+HAVING I.PersonID = MAX(
     ( SELECT COUNT(I2.PersonID)
       FROM InvolvedIn I2 )
-      INNER JOIN People P2 ON P2.PersonID = I2.PersonID
 );
--- sub query sem skoðar hvert casecount fyrir hverja person fyrir hvert location
---group by personid og location 
---hafa í having condition sem tekur count og athugar hvort subquery sé minna 
 
-select 8 as Query; 
+select 8 as Query; -- Ingo
 
 SELECT A.designation, A.codename
 FROM Agents A
@@ -201,9 +159,22 @@ WHERE A.agentID NOT IN (
     WHERE L.location = 'Akranes'
 )
 
-select 9 as Query;
+select 9 as Query; -- Asi
 
+SELECT COUNT( DISTINCT P.GenderID), I.CaseID
+FROM People P
+INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
+GROUP BY I.CaseID
 
+SELECT C.CaseID, C.title, L.location
+FROM Cases C
+INNER JOIN Locations L ON C.LocationID = L.LocationID
+WHERE C.CaseID IN(
+    SELECT I.CaseID
+    FROM InvolvedIn I
+    INNER JOIN People P ON P.PersonID = I.PersonID
+    GROUP BY I.CaseID
+    HAVING COUNT(DISTINCT P.GenderID) = 3);
 
 select 10 as Query; 
 
@@ -218,4 +189,3 @@ SELECT 11 AS Query;
 SELECT * 
 FROM Locations
 WHERE Location = 'Gervivogur'
-
