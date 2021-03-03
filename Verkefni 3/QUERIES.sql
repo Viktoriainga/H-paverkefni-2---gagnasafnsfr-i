@@ -55,35 +55,36 @@ select 5 as Query; -- Ingo
 
 SELECT A.codename, A.secretIdentity, A.designation
 FROM Agents A 
-INNER JOIN Cases C ON C.AgentID = A.AgentID
-INNER JOIN Locations L ON C.LocationID = L.LocationID 
-GROUP BY L.LocationID
-WHERE A.agentID NOT IN (
-    SELECT A.agentID
-    FROM Agents A 
-    INNER JOIN Cases AS C ON C.agentID = A.agentID
-    INNER JOIN Locations AS L ON C.locationID = L.locationID
+INNER JOIN Cases AS C ON C.agentID = A.agentID
+HAVING C.isclosed = TRUE AND A.agentID NOT IN ( -- Everyone except lowest case solved in town
+    SELECT C.agentID
+    FROM Locations L
+    INNER JOIN Cases AS C ON L.LocationID = C.LocationID
+    GROUP BY C.agentID,C.CaseID, L.LocationID
+    HAVING C.isclosed = TRUE
+    ORDER BY C.LocationID ASC
 );
 
 select 6 as Query; -- Asi
 
 SELECT A.codename, A.designation
 FROM Agents A
-
-SELECT L.Location, C.title, C.year
-FROM Locations L
-INNER JOIN Cases C ON L.LocationID = C.LocationID
-WHERE C.year = (SELECT MIN(C.year)
-    FROM Cases C);
-
-SELECT A.AgentID, C.LocationID
-FROM Agents A
-INNER JOIN Cases C ON C.AgentID = A.AgentID
-GROUP BY A.AgentID, C.LocationID
-HAVING COUNT( DISTINCT A.AgentID) = 2;
-
-SELECT L.LocationID
-FROM LOCATION 
+INNER JOIN Cases C2 ON C2.AgentID = A.AgentID
+WHERE C2.CaseID IN(
+    SELECT C.CaseID
+    FROM Locations L
+    INNER JOIN Cases C ON L.LocationID = C.LocationID
+    WHERE C.year = (
+        SELECT MIN(C1.year)
+        FROM Cases C1
+        WHERE L.LocationID = C1.LocationID
+        GROUP BY C.LocationID))
+AND A.codename IN(
+    SELECT A.codename
+    FROM Agents A
+    INNER JOIN Cases C ON C.AgentID = A.AgentID
+    GROUP BY A.codename
+    HAVING COUNT( DISTINCT C.LocationID) = 2);
 
 /*
 Show the ID, name and profession of People
