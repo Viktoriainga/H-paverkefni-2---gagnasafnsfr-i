@@ -86,11 +86,14 @@ select 5 as Query; -- Ingo
 
 SELECT A.codename, A.secretIdentity, A.designation
 FROM Agents A 
-WHERE A.agentID NOT IN (
-    SELECT A.agentID
-    FROM Agents A 
-    INNER JOIN Cases AS C ON C.agentID = A.agentID
-    INNER JOIN Locations AS L ON C.locationID = L.locationID
+INNER JOIN Cases AS C ON C.agentID = A.agentID
+HAVING C.isclosed = TRUE AND A.agentID NOT IN ( -- Everyone except lowest case solved in town
+    SELECT C.agentID
+    FROM Locations L
+    INNER JOIN Cases AS C ON L.LocationID = C.LocationID
+    GROUP BY C.agentID,C.CaseID, L.LocationID
+    HAVING C.isclosed = TRUE
+    ORDER BY C.LocationID ASC
 );
 
 select 6 as Query; -- Asi
