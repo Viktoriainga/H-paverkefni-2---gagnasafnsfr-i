@@ -36,7 +36,7 @@ ORDER BY personID ASC;
 select 3 as Query; -- Asi
 
 SELECT A.codename
-FROM A.Agents
+FROM Agents A
 WHERE
     secretIdentity IN(
         SELECT A2.secretIdentity
@@ -47,6 +47,27 @@ WHERE
         FROM InvolvedIn I2
         WHERE I2.isCulprit = TRUE);
 
+FROM Agents A
+WHERE A.secretIdentity IN(
+    SELECT A2.secretIdentity
+    FROM Agents A2
+    NATURAL JOIN Cases C
+    INTERSECT
+    SELECT I2.PersonID
+    FROM InvolvedIn I2
+    WHERE I2.isCulprit = TRUE);
+
+SELECT I.PersonID, I.CaseID
+FROM InvolvedIn I
+WHERE I.isCulprit = TRUE
+AND I.PersonID, I.CaseID IN(
+    SELECT A.secretIdentity, C.CaseID
+    FROM Agents A
+    INNER JOIN Cases C ON A.AgentID = C.AgentID)
+
+SELECT A.secretIdentity, C.CaseID
+FROM Agents A
+INNER JOIN Cases C ON A.AgentID = C.AgentID;
 
 select 4 as Query; -- Vikta
 SELECT A.codename, P.name, A.designation 
@@ -76,6 +97,21 @@ select 6 as Query; -- Asi
 
 SELECT A.codename, A.designation
 FROM Agents A
+
+SELECT L.Location, C.title, C.year
+FROM Locations L
+INNER JOIN Cases C ON L.LocationID = C.LocationID
+WHERE C.year = (SELECT MIN(C.year)
+    FROM Cases C);
+
+SELECT A.AgentID, C.LocationID
+FROM Agents A
+INNER JOIN Cases C ON C.AgentID = A.AgentID
+GROUP BY A.AgentID, C.LocationID
+HAVING COUNT( DISTINCT A.AgentID) = 2;
+
+SELECT L.LocationID
+FROM LOCATION 
 
 /*
 Show the ID, name and profession of People
@@ -132,14 +168,20 @@ WHERE A.agentID NOT IN (
 
 select 9 as Query; -- Asi
 
+SELECT COUNT( DISTINCT P.GenderID), I.CaseID
+FROM People P
+INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
+GROUP BY I.CaseID
+
 SELECT C.CaseID, C.title, L.location
-FROM Cases C 
+FROM Cases C
 INNER JOIN Locations L ON C.LocationID = L.LocationID
-
-SELECT I.PersonID
-FROM InvolvedIn I
-INNER JOIN Cases C ON C.CaseID = I.CaseID
-
+WHERE C.CaseID IN(
+    SELECT I.CaseID
+    FROM InvolvedIn I
+    INNER JOIN People P ON P.PersonID = I.PersonID
+    GROUP BY I.CaseID
+    HAVING COUNT(DISTINCT P.GenderID) = 3);
 
 select 10 as Query; 
 
