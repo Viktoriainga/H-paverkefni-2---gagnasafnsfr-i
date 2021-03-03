@@ -124,10 +124,11 @@ INNER JOIN Professions PR ON PR.ProfessionID = P.ProfessionID
 INNER JOIN Cases C on C.CaseID = I.CaseID
 INNER JOIN Locations L on L.LocationID = C.LocationID
 GROUP BY P.PersonID, PR.description, I.PersonID, L.location
-HAVING COUNT(P.PersonID) > (
+HAVING COUNT(P.PersonID) > ALL (
     ( SELECT COUNT(I2.PersonID)
       FROM InvolvedIn I2 
-      INNER JOIN People P2 ON P2.PersonID = I2.PersonID)
+      INNER JOIN People P2 ON P2.PersonID = I2.PersonID
+      INNER JOIN Locations L ON P2.locationID)
 );
 
 select 8 as Query; -- Ingo
