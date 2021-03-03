@@ -29,11 +29,9 @@ select 3 as Query; -- Asi
 
 SELECT DISTINCT A.codename
 FROM Agents A
---INNER JOIN InvolvedIn I1 ON A.AgentID = I1.AgentID 
 INNER JOIN People P ON P.PersonID = A.secretIdentity
 INNER JOIN Cases C ON C.AgentID = A.AgentID 
 INNER JOIN InvolvedIn I ON C.CaseID = I.CaseID
---INNER JOIN InvolvedIn I2 ON P.PersonID = I2.PersonID
 INNER JOIN People P2 ON P2.PersonID = I.PersonID
 WHERE I.isCulprit = TRUE AND P.PersonID = P2.PersonID;
 
