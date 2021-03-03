@@ -13931,6 +13931,7 @@ VALUES
 (1205, 'The Case Of The Chicken', FALSE, 2039, 11, 68),
 (1206, 'The Case Of The Rod', FALSE, 2026, 88, 31);
 
+INSER TINTO
 
 INSERT INTO InvolvedIn
 VALUES
