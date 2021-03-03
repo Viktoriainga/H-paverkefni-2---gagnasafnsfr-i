@@ -57,3 +57,57 @@ CREATE TABLE Passwords (
     password VARCHAR(255) DEFAULT '[REDACTED]',
     FOREIGN KEY (AgentID) REFERENCES Agents (AgentID) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+DROP TABLE Passwords;
+DROP TABLE InvolvedIn;
+DROP TABLE Cases;
+DROP TABLE Agents;
+DROP TABLE People;
+DROP TABLE Locations;
+DROP TABLE Genders;
+DROP TABLE Professions;
+
+INSERT INTO Professions(description)
+VALUES
+('Electronic publishing specialist');
+
+INSERT INTO Genders(GenderID, gender)
+VALUES
+(1, 'Female'),
+(2, 'Male'),
+(3, 'Other');
+
+INSERT INTO Locations(location, caseCount)
+VALUES
+('Finnbogastaðir', 0);
+
+
+INSERT INTO Locations(location, caseCount)
+VALUES
+('Finnbogasssss', 2);
+
+INSERT INTO People
+VALUES
+(1, 'Eyþóra Kristbjörnsdóttir', 1, 2, 1);
+
+INSERT INTO People
+VALUES
+(2, 'Eyþór Kristbjörn', 1, 2, 1);
+
+INSERT INTO Agents
+VALUES
+(2, 'Buzzindsfng', '0002', TRUE, 'killed', 2, 2);
+
+INSERT INTO Agents
+VALUES
+(1, 'Buzzing Darling', '0001', TRUE, 'killed', 1, 2);
+
+INSERT INTO Cases
+VALUES
+(1, 'The Case Of The Door', TRUE, 2027, 1, 1),
+(2, 'The Case Of The Protest', TRUE, 2045, 1, 2);
+
+INSERT INTO InvolvedIn
+VALUES
+(1, 1, 1, TRUE),
+(1, 2, 1, TRUE);
