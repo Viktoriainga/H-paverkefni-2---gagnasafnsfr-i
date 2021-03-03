@@ -1,14 +1,6 @@
 CREATE DATABASE PIII
 
 select 1 as Query; -- Vikta
-/*SELECT P.PersonID, P.Name
-FROM People P 
-INNER JOIN Locations L ON P.LocationID = L.LocationID
-WHERE LEFT(L.location, 1) == LEFT(
-    select L.location
-    FROM Locations L 
-    INNER JOIN Cases C ON C.LocationId = L.LocationId
-, 1)); */
 
 SELECT P.PersonID, P.name 
 FROM People P 
@@ -35,51 +27,28 @@ ORDER BY personID ASC;
 
 select 3 as Query; -- Asi
 
-SELECT A.codename
+SELECT DISTINCT A.codename
 FROM Agents A
-WHERE
-    secretIdentity IN(
-        SELECT A2.secretIdentity
-        FROM Agents A2
-        NATURAL JOIN InvolvedIn I1
-        INTERSECT
-        SELECT I2.PersonID
-        FROM InvolvedIn I2
-        WHERE I2.isCulprit = TRUE);
-
-FROM Agents A
-WHERE A.secretIdentity IN(
-    SELECT A2.secretIdentity
-    FROM Agents A2
-    NATURAL JOIN Cases C
-    INTERSECT
-    SELECT I2.PersonID
-    FROM InvolvedIn I2
-    WHERE I2.isCulprit = TRUE);
-
-SELECT I.PersonID, I.CaseID
-FROM InvolvedIn I
-WHERE I.isCulprit = TRUE
-AND I.PersonID, I.CaseID IN(
-    SELECT A.secretIdentity, C.CaseID
-    FROM Agents A
-    INNER JOIN Cases C ON A.AgentID = C.AgentID)
-
-SELECT A.secretIdentity, C.CaseID
-FROM Agents A
-INNER JOIN Cases C ON A.AgentID = C.AgentID;
+--INNER JOIN InvolvedIn I1 ON A.AgentID = I1.AgentID 
+INNER JOIN People P ON P.PersonID = A.secretIdentity
+INNER JOIN Cases C ON C.AgentID = A.AgentID 
+INNER JOIN InvolvedIn I ON C.CaseID = I.CaseID
+--INNER JOIN InvolvedIn I2 ON P.PersonID = I2.PersonID
+INNER JOIN People P2 ON P2.PersonID = I.PersonID
+WHERE I.isCulprit = TRUE AND P.PersonID = P2.PersonID;
 
 select 4 as Query; -- Vikta
-SELECT A.codename, P.name, A.designation 
+
+SELECT DISTINCT A.codename, A.designation 
 FROM Agents A 
-INNER JOIN People P ON A.secretIdentity = P.PersonID
-WHERE A.killLicense = TRUE OR A.AgentID IN (
-    SELECT C.CaseID
-    FROM Cases C 
-    INNER JOIN Agents A ON A.AgentID = C.CaseID
-    GROUP BY C.CaseID, A.AgentID
-    HAVING COUNT(DISTINCT C.LocationId) >=5
-) > 0; 
+INNER JOIN Cases C ON A.AgentID = C.AgentID
+WHERE C.AgentID IN (
+    SELECT C2.AgentID
+    FROM Cases C2
+    GROUP BY C2.AgentID
+    HAVING COUNT(DISTINCT C2.LocationId) >= 5
+) OR A.killLicense = TRUE;
+
 -- select ...
 
 select 5 as Query; -- Ingo
@@ -139,7 +108,14 @@ GROUP BY P.PersonID,P.name, PR.description, I.PersonID, L.location
 HAVING MAX(I.PersonID);
 
 
-SELECT P.PersonID, P.name, PR.description, I.PersonID, L.location
+SELECT P.PersonID, P.name, PR.description, I.PersonID, L.location, 
+CASE
+WHEN I.PersonID IN (
+        SELECT A.secretIdentity 
+        FROM Agents A )
+    THEN 'yes'
+    ELSE 'no' 
+END AS secretlyagent
 FROM People P
 INNER JOIN InvolvedIn I ON I.PersonID = P.PersonID
 INNER JOIN Professions PR ON PR.ProfessionID = P.ProfessionID
@@ -147,9 +123,9 @@ INNER JOIN Cases C on C.CaseID = I.CaseID
 INNER JOIN Locations L on L.LocationID = C.LocationID
 GROUP BY P.PersonID, PR.description, I.PersonID, L.location
 HAVING COUNT(P.PersonID) > (
-    ( SELECT COUNT(*)
-      FROM InvolvedIn I2 )
-      --INNER JOIN People P2 ON P2.PersonID = I2.PersonID)
+    ( SELECT COUNT(I2.PersonID)
+      FROM InvolvedIn I2 
+      INNER JOIN People P2 ON P2.PersonID = I2.PersonID)
 );
 
 select 8 as Query; -- Ingo
@@ -165,11 +141,6 @@ WHERE A.agentID NOT IN (
 );
 
 select 9 as Query; -- Asi
-
-SELECT COUNT( DISTINCT P.GenderID), I.CaseID
-FROM People P
-INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
-GROUP BY I.CaseID
 
 SELECT C.CaseID, C.title, L.location
 FROM Cases C
