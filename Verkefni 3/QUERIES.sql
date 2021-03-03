@@ -158,9 +158,20 @@ SELECT C.CaseID, C.title, L.location
 FROM Cases C 
 INNER JOIN Locations L ON C.LocationID = L.LocationID
 
-SELECT I.PersonID
+SELECT I.PersonID, I.CaseID ,P.GenderID
 FROM InvolvedIn I
-INNER JOIN Cases C ON C.CaseID = I.CaseID
+INNER JOIN People P ON P.PersonID = I.PersonID
+GROUP BY I.CaseID, P.GenderID
+HAVING COUNT( DISTINCT P.GenderID) =3
+
+
+SELECT I2.CaseID
+FROM InvolvedIn I2
+WHERE I2.CaseID IN(
+    SELECT COUNT( DISTINCT P.GenderID), I.CaseID
+    FROM People P
+    INNER JOIN InvolvedIn I ON P.PersonID = I.PersonID
+    GROUP BY I.CaseID)
 
 
 select 10 as Query; 
