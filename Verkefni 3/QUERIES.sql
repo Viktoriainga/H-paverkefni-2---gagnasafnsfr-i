@@ -86,17 +86,6 @@ VALUES
 select 4 as Query; 
 
 SELECT DISTINCT A.codename, A.designation 
-FROM Agents A, (
-    SELECT C.LocationID
-    FROM Cases C
-    INNER JOIN InvolvedIn I ON C.CaseID = I.CaseID
-    INNER JOIN Agents A ON A.AgentID = I.AgentID
-    ) C2
-GROUP BY A.codename, A.designation, A.killLicense
-HAVING A.killLicense = TRUE OR COUNT(C2) >= 20;
-
-
-SELECT DISTINCT A.codename, A.designation 
 FROM Agents A 
 INNER JOIN Cases C ON A.AgentID = C.AgentID
 WHERE C.AgentID IN (
@@ -106,20 +95,6 @@ WHERE C.AgentID IN (
     HAVING COUNT(DISTINCT C2.LocationId) >= 5
 ) OR A.killLicense = TRUE;
 
-
-/*select 4 as Query; -- Vikta
-SELECT DISTINCT A.codename, A.designation 
-FROM Agents A 
-INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
-INNER JOIN Cases C ON C.CaseID = I.CaseID
-GROUP BY A.codename, A.designation, A.killLicense
-HAVING COUNT(DISTINCT(C.LocationId)) >= 5
-UNION
-SELECT DISTINCT A.codename, A.designation 
-FROM Agents A 
-INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
-INNER JOIN Cases C ON C.CaseID = I.CaseID
-WHERE A.killLicense = TRUE;*/
 
 select 5 as Query; 
 
