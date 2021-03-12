@@ -1,6 +1,5 @@
 -- Authors: Ástþór Arnórsson, Ingólfur Orri Gústafsson og Viktoría Inga Smáradóttir
-CREATE DATABASE PIIII
-
+CREATE DATABASE PIV
 /*
 ATH: 
 Some of the problems have edge cases/corner cases that are not described here. 
@@ -13,6 +12,18 @@ then it is a good idea to take a long hard look at it to make sure you really co
 select 1 as Query;  --Asi
 
 select 2 as Query; --Ingo
+
+CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
+AS
+    SELECT P.personID, P.name, COUNT(*) AS NumCases -- Skilar bara unique, count alltaf 1
+    FROM People P 
+    INNER JOIN InvolvedIn I ON I.personID = P.personID
+    INNER JOIN Cases C ON C.caseID = I.caseID 
+    INNER JOIN Locations L ON L.locationID = C.locationID
+    WHERE L.location = 'Stokkseyri'
+    GROUP BY P.personID
+    ORDER BY NumCases ASC
+    LIMIT 3
 
 select 3 as Query; --Vik
 
