@@ -18,12 +18,13 @@ AS
     SELECT P.personID, P.name, COUNT(*) AS NumCases -- Skilar bara unique, count alltaf 1
     FROM People P 
     INNER JOIN InvolvedIn I ON I.personID = P.personID
-    INNER JOIN Cases C ON C.caseID = I.caseID 
-    INNER JOIN Locations L ON L.locationID = C.locationID
+    INNER JOIN Locations L ON L.locationID = P.locationID
     WHERE L.location = 'Stokkseyri'
     GROUP BY P.personID
-    ORDER BY NumCases ASC
+    ORDER BY NumCases desc
     LIMIT 3
+
+SELECT * FROM topSuspects
 
 select 3 as Query; --Vik
 
