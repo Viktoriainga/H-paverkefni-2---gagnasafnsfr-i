@@ -32,6 +32,28 @@ select 4 as Query; --Asi
 
 select 5 as Query; --Ingo
 
+CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
+    DECLARE
+        val Locations;
+    BEGIN
+        FOR val IN (
+            SELECT L.location, COUNT(*) as locCaseCount
+            FROM Locations L 
+            INNER JOIN Cases C on C.locationID = L.locationID
+            GROUP BY L.Location
+        )
+        LOOP
+            UPDATE Locations
+            SET Locations.casecount = val.locCaseCount
+            WHERE Locations.location = val.location;
+        END LOOP;
+    END;
+$$ LANGUAGE plpgsql;
+
+SELECT CaseCountFixer();
+
+DROP FUNCTION CaseCountFixer();
+
 select 6 as Query; --Vik
 
 select 7 as Query; --Asi
