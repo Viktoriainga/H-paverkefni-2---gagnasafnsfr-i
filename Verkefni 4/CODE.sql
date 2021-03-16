@@ -44,8 +44,8 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
         )
         LOOP
             UPDATE Locations
-            SET Locations.casecount = val.locCaseCount
-            WHERE Locations.location = val.location;
+            SET casecount = val.locCaseCount
+            WHERE location = val.location;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
