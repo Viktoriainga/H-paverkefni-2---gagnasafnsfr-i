@@ -15,7 +15,7 @@ select 2 as Query; --Ingo
 
 CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
 AS
-    SELECT P.personID, P.name, COUNT(*) AS NumCases -- Skilar bara unique, count alltaf 1
+    SELECT P.personID, P.name, COUNT(*) AS NumCases
     FROM People P 
     INNER JOIN InvolvedIn I ON I.personID = P.personID
     INNER JOIN Locations L ON L.locationID = P.locationID
@@ -127,6 +127,8 @@ END;
 select 7 as Query; --Asi
 
 select 8 as Query; --Ingo
+
+
 
 select 9 as Query; --Vik
 CREATE OR REPLACE FUNCTION yearsSinceCase(IN location VARCHAR(255)) 
