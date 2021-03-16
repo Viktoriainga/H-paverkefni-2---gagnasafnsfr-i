@@ -1,6 +1,5 @@
 -- Authors: Ástþór Arnórsson, Ingólfur Orri Gústafsson og Viktoría Inga Smáradóttir
-CREATE DATABASE PIIII
-
+CREATE DATABASE PIV
 /*
 ATH: 
 Some of the problems have edge cases/corner cases that are not described here. 
@@ -13,6 +12,19 @@ then it is a good idea to take a long hard look at it to make sure you really co
 select 1 as Query;  --Asi
 
 select 2 as Query; --Ingo
+
+CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
+AS
+    SELECT P.personID, P.name, COUNT(*) AS NumCases -- Skilar bara unique, count alltaf 1
+    FROM People P 
+    INNER JOIN InvolvedIn I ON I.personID = P.personID
+    INNER JOIN Locations L ON L.locationID = P.locationID
+    WHERE L.location = 'Stokkseyri'
+    GROUP BY P.personID
+    ORDER BY NumCases desc
+    LIMIT 3
+
+SELECT * FROM topSuspects
 
 select 3 as Query; --Vik
 CREATE VIEW findNemeses AS 
@@ -81,6 +93,28 @@ WHERE A.secretIdentity = 8066;
 select 4 as Query; --Asi
 
 select 5 as Query; --Ingo
+
+CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
+    DECLARE
+        val Locations;
+    BEGIN
+        FOR val IN (
+            SELECT L.location, COUNT(*) as locCaseCount
+            FROM Locations L 
+            INNER JOIN Cases C on C.locationID = L.locationID
+            GROUP BY L.Location
+        )
+        LOOP
+            UPDATE Locations
+            SET casecount = val.locCaseCount
+            WHERE location = val.location;
+        END LOOP;
+    END;
+$$ LANGUAGE plpgsql;
+
+SELECT CaseCountFixer();
+
+DROP FUNCTION CaseCountFixer();
 
 select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
