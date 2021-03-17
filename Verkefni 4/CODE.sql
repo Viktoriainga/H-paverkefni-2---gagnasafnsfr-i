@@ -124,10 +124,10 @@ SELECT * FROM CaseCountFixer();
 SELECT * FROM Locations;
 ROLLBACK;
 
-SELECT L.location, COUNT(*) as locCaseCount
-FROM Locations L 
-INNER JOIN Cases C on C.locationID = L.locationID
-GROUP BY L.Location
+-- SELECT L.location, COUNT(*) as locCaseCount
+-- FROM Locations L 
+-- INNER JOIN Cases C on C.locationID = L.locationID
+-- GROUP BY L.Location
 
 DROP FUNCTION CaseCountFixer();
 
@@ -143,19 +143,47 @@ select 7 as Query; --Asi
 
 select 8 as Query; --Ingo
 
-CREATE OR REPLACE FUNCTION DistributeAgentCases()
-RETURN void
+CREATE OR REPLACE FUNCTION GetNewAgentID()
+RETURNS int
 AS $$
 BEGIN
-    FOR case IN (
-        SELECT C.CaseID
-        FROM Cases C
-        WHERE C.AgentID = OLD.AgentID
-    )
-    LOOP
-
-    END LOOP;
+RETURN (
+    SELECT A.AgentID, COUNT(*) AS currCases
+    FROM Agents A
+    INNER JOIN Cases C ON C.AgentID = A.AgentID
+    GROUP BY A.AgentID
+    ORDER BY currCases ASC, A.AgentID ASC
+    LIMIT 1
+    ).AgentID;
 END;
+$$ LANGUAGE plpgsql;
+
+-- A lidur
+CREATE OR REPLACE FUNCTION DistributeAgentCases() RETURNS void AS $$
+    DECLARE
+        AgentCases cases%ROWTYPE;
+        newAgentID int;
+    BEGIN
+        FOR AgentCases IN (
+            SELECT C.CaseID
+            FROM Cases C
+            WHERE C.AgentID = OLD.AgentID
+        )
+        LOOP
+            newAgentID := GetNewAgentID();
+            UPDATE Cases
+            SET AgentID = newAgentID
+            WHERE caseID = AgentCases.caseID;
+        END LOOP;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION RemoveInvestigatedBy() RETURNS void AS $$
+    BEGIN
+        UPDATE InvolvedIn
+        SET AgentID = NULL
+        WHERE AgentID = OLD.AgentID;
+    END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION FixAgentFired()
@@ -172,6 +200,11 @@ FOR EACH ROW
 BEGIN
 FixAgentFired()
 END;
+
+BEGIN
+
+SELECT * FROM Cases
+ROLLBACK;
 
 
 select 9 as Query; --Vik
