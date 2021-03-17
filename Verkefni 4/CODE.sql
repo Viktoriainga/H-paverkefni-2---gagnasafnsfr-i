@@ -29,13 +29,13 @@ SELECT * FROM topSuspects
 select 3 as Query; --Vik
 
 CREATE VIEW findNemeses AS 
-SELECT A.AgentID, A.codename, P.PersonID, P.name
+SELECT DISTINCT A.AgentID, A.codename, P.PersonID, P.name
 FROM Agents A 
 INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
 INNER JOIN People P1 ON A.secretIdentity = P1.PersonID
 INNER JOIN People P ON P.PersonID = I.PersonID
 GROUP BY A.AgentID, I.isCulprit, P.PersonID
-HAVING I.isCulprit = TRUE AND COUNT(I.CaseID) >= ALL ((
+HAVING I.isCulprit = TRUE AND COUNT(I.PersonID) >= ALL ((
         SELECT COUNT(I3.PersonID)
         FROM InvolvedIn I3 
         INNER JOIN Agents A1 ON I3.AgentID = A1.AgentID
@@ -43,6 +43,7 @@ HAVING I.isCulprit = TRUE AND COUNT(I.CaseID) >= ALL ((
         HAVING I3.PersonID = P.PersonID AND I3.isCulprit = TRUE AND COUNT(I3.PersonID) > 1 )
 ) AND COUNT(I.PersonID) > 1;
 
+/*
 INSERT INTO People
 VALUES
 (default, 'Eyþór kristinss', 2033, 1, 82);
@@ -62,6 +63,8 @@ WHERE A.AgentID = 40;
 SELECT * 
 FROM Agents A 
 WHERE A.secretIdentity = 8066;
+
+*/
 
 select 4 as Query; --Asi
 
@@ -107,6 +110,7 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
     END;
 $$ LANGUAGE plpgsql;
 
+/*
 BEGIN;
 SELECT * FROM CaseCountFixer();
 SELECT * FROM Locations;
@@ -118,6 +122,7 @@ INNER JOIN Cases C on C.locationID = L.locationID
 GROUP BY L.Location
 
 DROP FUNCTION CaseCountFixer();
+*/
 
 select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
@@ -184,12 +189,14 @@ BEGIN
 END; $$
 LANGUAGE plpgsql; 
 
+/*
 SELECT yearsSinceCase('Reykjahlíð');
 
 SELECT MAX(C.year)
 FROM Cases C 
 INNER JOIN Locations L ON L.LocationID = C.LocationID
 WHERE L.location = 'Reykjahlíð' AND C.year < (SELECT EXTRACT(YEAR FROM CURRENT_DATE));
+*/
 
 -- For lúppa sem gengur 2x þar sem P1.PersonID verður chosenPersonID?
 select 10 as Query; --Allir
