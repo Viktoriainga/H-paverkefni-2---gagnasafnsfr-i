@@ -96,23 +96,38 @@ select 5 as Query; --Ingo
 
 CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
     DECLARE
-        val Locations;
+        locCaseCount int;
+        locid int;
+        loctemp Locations%ROWTYPE;
     BEGIN
-        FOR EACH val IN (
-            SELECT L.location, COUNT(*) as locCaseCount
-            FROM Locations L 
-            INNER JOIN Cases C on C.locationID = L.locationID
-            GROUP BY L.Location
+        FOR loctemp IN (
+            SELECT * FROM Locations
         )
         LOOP
-            UPDATE Locations L
-            SET L.casecount = val.locCaseCount
-            WHERE L.location = val.location;
+            locid := loctemp.locationID;
+            locCaseCount := (
+                SELECT COUNT(*)
+                FROM Locations L 
+                INNER JOIN Cases C on C.locationID = locid
+                --GROUP BY L.Location
+                LIMIT 1
+                );
+            UPDATE Locations
+            SET casecount = locCaseCount
+            WHERE locationID = locid;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 
-SELECT CaseCountFixer();
+BEGIN;
+SELECT * FROM CaseCountFixer();
+SELECT * FROM Locations;
+ROLLBACK;
+
+SELECT L.location, COUNT(*) as locCaseCount
+FROM Locations L 
+INNER JOIN Cases C on C.locationID = L.locationID
+GROUP BY L.Location
 
 DROP FUNCTION CaseCountFixer();
 
