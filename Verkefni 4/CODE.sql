@@ -98,16 +98,16 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
     DECLARE
         val Locations;
     BEGIN
-        FOR val IN (
+        FOR EACH val IN (
             SELECT L.location, COUNT(*) as locCaseCount
             FROM Locations L 
             INNER JOIN Cases C on C.locationID = L.locationID
             GROUP BY L.Location
         )
         LOOP
-            UPDATE Locations
-            SET casecount = val.locCaseCount
-            WHERE location = val.location;
+            UPDATE Locations L
+            SET L.casecount = val.locCaseCount
+            WHERE L.location = val.location;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
@@ -128,6 +128,35 @@ select 7 as Query; --Asi
 
 select 8 as Query; --Ingo
 
+CREATE OR REPLACE FUNCTION DistributeAgentCases()
+RETURN void
+AS $$
+BEGIN
+    FOR case IN (
+        SELECT C.CaseID
+        FROM Cases C
+        WHERE C.AgentID = OLD.AgentID
+    )
+    LOOP
+
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION FixAgentFired()
+RETURNS TRIGGER
+AS $$
+BEGIN
+DistributeAgentCases();
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER AgentFired
+AFTER DELETE ON Agents
+FOR EACH ROW
+BEGIN
+FixAgentFired()
+END;
 
 
 select 9 as Query; --Vik
