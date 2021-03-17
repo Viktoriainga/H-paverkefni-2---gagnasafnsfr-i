@@ -27,68 +27,44 @@ AS
 SELECT * FROM topSuspects
 
 select 3 as Query; --Vik
-CREATE VIEW findNemeses AS 
-SELECT A.AgentID, P1.name, P.PersonID, P.name
-FROM Agents A 
-INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
-INNER JOIN People P1 ON A.secretIdentity = P1.PersonID
-INNER JOIN People P ON P.PersonID = I.PersonID
-GROUP BY P1.PersonID, P.PersonID, A.AgentID
-HAVING 1 < MAX((
-        SELECT COUNT(I3.PersonID)
-        FROM InvolvedIn I3 
-       
-        WHERE I3.PersonID = P.PersonID AND I3.isCulprit = TRUE AND I3.AgentID = A.AgentID)
-)
-ORDER BY P.PersonID;
-
-
 
 CREATE VIEW findNemeses AS 
-SELECT A.AgentID, A.codename, P.PersonID, P.name, COUNT(P.PersonID)
+SELECT DISTINCT A.AgentID, A.codename, P.PersonID, P.name
 FROM Agents A 
 INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
 INNER JOIN People P1 ON A.secretIdentity = P1.PersonID
 INNER JOIN People P ON P.PersonID = I.PersonID
 GROUP BY A.AgentID, I.isCulprit, P.PersonID
-HAVING I.isCulprit = TRUE AND COUNT(I.CaseID) >= ALL ((
-        SELECT COUNT(I.CaseID)
+HAVING I.isCulprit = TRUE AND COUNT(I.PersonID) >= ALL ((
+        SELECT COUNT(I3.PersonID)
         FROM InvolvedIn I3 
         INNER JOIN Agents A1 ON I3.AgentID = A1.AgentID
-        GROUP BY A1.AgentID, I3.PersonID, I3.isCulprit, I3.CaseID
-        HAVING I3.PersonID = P.PersonID AND I3.isCulprit = TRUE AND COUNT(I3.CaseID) > 1 )
-) AND COUNT(I.CaseID) > 1
-ORDER BY P.PersonID;
+        GROUP BY A1.AgentID, I3.PersonID, I3.isCulprit
+        HAVING I3.PersonID = P.PersonID AND I3.isCulprit = TRUE AND COUNT(I3.PersonID) > 1 )
+) AND COUNT(I.PersonID) > 1;
 
-SELECT A.AgentID, P1.name, P.PersonID, P.name
-FROM Agents A 
-INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
-INNER JOIN People P1 ON A.secretIdentity = P1.PersonID
-INNER JOIN People P ON P.PersonID = I.PersonID
+/*
+INSERT INTO People
+VALUES
+(default, 'Eyþór kristinss', 2033, 1, 82);
 
+SELECT *
+from People 
+WHERE name = 'Eyþór kristinss';
 
-CREATE VIEW findNemeses AS 
-SELECT DISTINCT A.AgentID, P.name, P1.PersonID, P1.name
-FROM Agents A 
-INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
-INNER JOIN People P ON A.secretIdentity = P.PersonID
-INNER JOIN People P1 ON P1.PersonID = I.PersonID
-GROUP BY A.AgentID, P.name, P1.PersonID
-HAVING COUNT(I.PersonID) >= ALL (
-    SELECT COUNT(I1.PersonID)
-    FROM InvolvedIn I1
-    GROUP BY I1.PersonID, I1.AgentID, I1.isCulprit
-    HAVING P1.PersonID = I1.PersonID AND I1.AgentID = A.AgentID AND I1.isCulprit = TRUE AND COUNT(I1.PersonID) > 1)
-ORDER BY P1.PersonID;
-
+INSERT INTO InvolvedIn
+VALUES(10001, 3, 22, TRUE),
+(10001, 4, 22, TRUE);
 
 SELECT * 
-FROM Agents A 
+FROM Cases
 WHERE A.AgentID = 40;
 
 SELECT * 
 FROM Agents A 
 WHERE A.secretIdentity = 8066;
+
+*/
 
 select 4 as Query; --Asi
 
@@ -96,6 +72,16 @@ select 5 as Query; --Ingo
 
 CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
     DECLARE
+
+    val INT;
+    BEGIN
+        val := (
+            SELECT COUNT(*) as locCaseCount
+            FROM Locations L 
+            INNER JOIN Cases C on C.locationID = L.locationID
+            GROUP BY L.Location
+        );
+
         locCaseCount int;
         locid int;
         loctemp Locations%ROWTYPE;
@@ -103,6 +89,7 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
         FOR loctemp IN (
             SELECT * FROM Locations
         )
+
         LOOP
             locid := loctemp.locationID;
             locCaseCount := (
@@ -113,12 +100,17 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
                 LIMIT 1
                 );
             UPDATE Locations
+
+            SET casecount = val
+            WHERE location = Locations.location;
+
             SET casecount = locCaseCount
             WHERE locationID = locid;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 
+/*
 BEGIN;
 SELECT * FROM CaseCountFixer();
 SELECT * FROM Locations;
@@ -130,14 +122,13 @@ ROLLBACK;
 -- GROUP BY L.Location
 
 DROP FUNCTION CaseCountFixer();
+*/
 
 select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
-AFTER DELETE, INSERT
-FOR EACH ROW 
-BEGIN 
-CaseCountFixer()
-END;
+AFTER INSERT OR UPDATE OR DELETE ON Cases
+EXECUTE FUNCTION CaseCountFixer();
+
 
 select 7 as Query; --Asi
 
@@ -231,13 +222,16 @@ BEGIN
 END; $$
 LANGUAGE plpgsql; 
 
+/*
 SELECT yearsSinceCase('Reykjahlíð');
 
 SELECT MAX(C.year)
 FROM Cases C 
 INNER JOIN Locations L ON L.LocationID = C.LocationID
 WHERE L.location = 'Reykjahlíð' AND C.year < (SELECT EXTRACT(YEAR FROM CURRENT_DATE));
+*/
 
+-- For lúppa sem gengur 2x þar sem P1.PersonID verður chosenPersonID?
 select 10 as Query; --Allir
 CREATE OR REPLACE FUNCTION FrenemiesOfFrenemies(IN ID INT)
 RETURNS TABLE(
@@ -252,8 +246,26 @@ AS $$
 DECLARE 
     chosenPersonID INT := ID;
 BEGIN 
-    RETURN QUERY 
-        SELECT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID
+    
+    SELECT DISTINCT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID 
+    FROM People P1 
+    INNER JOIN InvolvedIn I ON I.PersonID = P1.PersonID
+    GROUP BY P1.PersonID, I.CaseID, I.PersonID
+    HAVING I.CaseID IN (
+        SELECT I1.CaseID
+        FROM InvolvedIn I1
+        GROUP BY I1.CaseID, I1.PersonID
+        HAVING I1.PersonID = chosenPersonID
+    ) AND I.PersonID <> chosenPersonID;
+  
+      
+END; $$
+LANGUAGE plpgsql;
+
+select FrenemiesOfFrenemies(4);
+
+
+ SELECT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID
         FROM People P 
         INNER JOIN InvolvedIn I ON I.PersonID = P.PersonID
         INNER JOIN Cases C ON C.CaseID = I.CaseID
@@ -263,11 +275,3 @@ BEGIN
         --INNER JOIN People P2 ON P2.PersonID = I.PersonID
         GROUP BY P1.PersonID, P.PersonID, I2.CaseID, C.CaseID
         HAVING P.PersonID = chosenPersonID AND I2.CaseID = C.CaseID;
-
-END; $$
-LANGUAGE plpgsql;
-
-
-select FrenemiesOfFrenemies(4);
-
-
