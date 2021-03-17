@@ -15,7 +15,7 @@ select 2 as Query; --Ingo
 
 CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
 AS
-    SELECT P.personID, P.name, COUNT(*) AS NumCases -- Skilar bara unique, count alltaf 1
+    SELECT P.personID, P.name, COUNT(*) AS NumCases
     FROM People P 
     INNER JOIN InvolvedIn I ON I.personID = P.personID
     INNER JOIN Locations L ON L.locationID = P.locationID
@@ -69,6 +69,7 @@ select 5 as Query; --Ingo
 
 CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
     DECLARE
+
     val INT;
     BEGIN
         val := (
@@ -77,15 +78,44 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
             INNER JOIN Cases C on C.locationID = L.locationID
             GROUP BY L.Location
         );
+
+        locCaseCount int;
+        locid int;
+        loctemp Locations%ROWTYPE;
+    BEGIN
+        FOR loctemp IN (
+            SELECT * FROM Locations
+        )
+
         LOOP
+            locid := loctemp.locationID;
+            locCaseCount := (
+                SELECT COUNT(*)
+                FROM Locations L 
+                INNER JOIN Cases C on C.locationID = locid
+                --GROUP BY L.Location
+                LIMIT 1
+                );
             UPDATE Locations
+
             SET casecount = val
             WHERE location = Locations.location;
+
+            SET casecount = locCaseCount
+            WHERE locationID = locid;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 
-SELECT CaseCountFixer();
+BEGIN;
+SELECT * FROM CaseCountFixer();
+SELECT * FROM Locations;
+ROLLBACK;
+
+SELECT L.location, COUNT(*) as locCaseCount
+FROM Locations L 
+INNER JOIN Cases C on C.locationID = L.locationID
+GROUP BY L.Location
 
 DROP FUNCTION CaseCountFixer();
 
@@ -98,6 +128,37 @@ EXECUTE FUNCTION CaseCountFixer();
 select 7 as Query; --Asi
 
 select 8 as Query; --Ingo
+
+CREATE OR REPLACE FUNCTION DistributeAgentCases()
+RETURN void
+AS $$
+BEGIN
+    FOR case IN (
+        SELECT C.CaseID
+        FROM Cases C
+        WHERE C.AgentID = OLD.AgentID
+    )
+    LOOP
+
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION FixAgentFired()
+RETURNS TRIGGER
+AS $$
+BEGIN
+DistributeAgentCases();
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER AgentFired
+AFTER DELETE ON Agents
+FOR EACH ROW
+BEGIN
+FixAgentFired()
+END;
+
 
 select 9 as Query; --Vik
 CREATE OR REPLACE FUNCTION yearsSinceCase(IN location VARCHAR(255)) 
