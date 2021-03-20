@@ -198,8 +198,47 @@ FROM Cases C
 INNER JOIN Locations L ON L.LocationID = C.LocationID
 WHERE L.location = 'Reykjahlíð' AND C.year < (SELECT EXTRACT(YEAR FROM CURRENT_DATE));
 
+
 select 10 as Query; --Allir
 CREATE OR REPLACE FUNCTION FrenemiesOfFrenemies(IN ID INT)
+RETURNS TABLE(
+    PersonID INT,
+    name varchar(255),
+    ProfessionID int, /* WorksIn */
+    GenderID int,
+    LocationID int /* LivesIn */
+)
+AS $$ 
+
+BEGIN 
+    --RETURN query 
+    SELECT DISTINCT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID 
+    FROM People P1 
+    INNER JOIN InvolvedIn I ON I.PersonID = P1.PersonID
+    GROUP BY P1.PersonID, I.CaseID, I.PersonID
+    HAVING I.CaseID IN (
+        SELECT I1.CaseID
+        FROM InvolvedIn I1
+        GROUP BY I1.CaseID, I1.PersonID
+        HAVING I1.PersonID = ID
+    ) AND I.PersonID <> ID;
+    /*ID := (
+        SELECT PersonID 
+        FROM NEW
+    );*/
+    LOOP 
+    SELECT * FROM FrenemiesOfFrenemiesHelper(ID);
+    --RETURN NEXT;
+    END LOOP;
+    RETURN;     
+END; $$
+
+LANGUAGE plpgsql;
+--select * from FrenemiesOfFrenemies(4);
+--SELECT * FROM FrenemiesOfFrenemiesHelper(ID);
+
+
+CREATE OR REPLACE FUNCTION FrenemiesOfFrenemiesHelper(IN ID INT)
 RETURNS TABLE(
     PersonID INT,
     name varchar(255),
@@ -226,5 +265,4 @@ BEGIN
       
 END; $$
 LANGUAGE plpgsql;
-select FrenemiesOfFrenemies(4);
-
+select * from FrenemiesOfFrenemies(4);
