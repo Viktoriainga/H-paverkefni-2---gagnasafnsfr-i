@@ -61,7 +61,7 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
         )
         LOOP
             locCaseCount := (
-                SELECT  COUNT(*)
+                SELECT COUNT(*)
                 FROM Cases C 
                 INNER JOIN Locations L on L.locationID = loctemp
                 GROUP BY C.LocationID
@@ -94,16 +94,16 @@ LANGUAGE plpgsql
 AS $$ 
 BEGIN
     IF TG_OP = 'UPDATE' AND OLD.locationID <> NEW.locationID OR TG_OP = 'INSERT' THEN
-        CALL CaseCountFixer();
+        PERFORM CaseCountFixer();
         RETURN NEW;
 
     ELSEIF TG_OP = 'DELETE' THEN
-        CALL CaseCountFixer();
+        PERFORM CaseCountFixer();
         END IF;
         RETURN OLD;
    
-END; $$;
-
+END; 
+$$;
 
 select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
@@ -112,17 +112,27 @@ EXECUTE FUNCTION CaseCountTrackerHelper();
 
 BEGIN;
 CALL CaseCountFixer();
+
 SELECT *
-FROM Locations; 
+FROM Locations;
+
 SELECT * 
-FROM Cases;
+FROM Cases
+LIMIT 5;
+
 UPDATE Cases
-SET LocationID = 25 
-WHERE LocationID = 26;
-SELECT * 
-FROM Cases;
+SET LocationID = 1 
+WHERE CaseID = 2;
+
 SELECT *
-FROM Locations; 
+FROM Cases
+LIMIT 5;
+
+CALL CaseCountFixer();
+
+SELECT *
+FROM Locations;
+
 ROLLBACK;
 
 
@@ -184,21 +194,18 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE DeleteSecretIdentity(secretIdentity_in int) AS $$
     BEGIN
-        raise notice 'Value: %', secretIdentity_in;
         DELETE FROM People
         WHERE personID = secretIdentity_in;
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION FixAgentFired()
-RETURNS TRIGGER
-AS $$
-BEGIN
-CALL DistributeAgentCases(OLD.AgentID);
-CALL RemoveInvestigatedBy(OLD.AgentID);
-CALL DeleteSecretIdentity(OLD.secretIdentity);
-RETURN OLD;
-END;
+CREATE OR REPLACE FUNCTION FixAgentFired() RETURNS TRIGGER AS $$
+    BEGIN
+        CALL DistributeAgentCases(OLD.AgentID);
+        CALL RemoveInvestigatedBy(OLD.AgentID);
+        CALL DeleteSecretIdentity(OLD.secretIdentity);
+        RETURN OLD;
+    END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS AgentFired ON Agents
