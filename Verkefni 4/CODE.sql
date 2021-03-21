@@ -36,9 +36,7 @@ AS
     ORDER BY A.AgentID
 
 
-select 2 as Query; 
-
-DROP VIEW topSuspects
+select 2 as Query; --Ingo
 
 CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
 AS
@@ -51,7 +49,7 @@ AS
     ORDER BY COUNT(*) desc
     LIMIT 3
 
-SELECT * FROM topSuspects
+SELECT * FROM topSuspects;
 
 
 select 3 as Query; 
