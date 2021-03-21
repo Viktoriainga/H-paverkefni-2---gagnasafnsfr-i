@@ -10,7 +10,7 @@ DROP VIEW topSuspects
 
 CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
 AS
-    SELECT P.personID, P.name, L.location --COUNT(*) AS NumCases
+    SELECT P.personID, P.name, L.location -- COUNT(*) AS NumCases
     FROM People P 
     INNER JOIN InvolvedIn I ON I.personID = P.personID
     INNER JOIN Locations L ON L.locationID = P.locationID
@@ -23,7 +23,7 @@ SELECT * FROM topSuspects
 
 select 3 as Query; 
 
-CREATE VIEW findNemeses AS 
+CREATE OR REPLACE VIEW findNemeses AS 
 SELECT DISTINCT A.AgentID, A.codename, P.PersonID, P.name
 FROM Agents A 
 INNER JOIN InvolvedIn I ON A.AgentID = I.AgentID
@@ -71,14 +71,14 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
     END;
 $$ LANGUAGE plpgsql;
 
--- Test for CaseCountFixer()
 
+-- Test for CaseCountFixer()
 BEGIN;
 CALL CaseCountFixer();
 SELECT * FROM Locations;
 ROLLBACK;
 
-select 6 as Query; --Vik
+select 6 as Query; 
 
 CREATE OR REPLACE FUNCTION CaseCountTrackerHelper()
 RETURNS TRIGGER 
@@ -101,8 +101,8 @@ CREATE TRIGGER CaseCountTracker
 AFTER INSERT OR DELETE OR UPDATE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
 
--- Test for CaseCountFixer()
 
+-- Test for CaseCountFixer()
 BEGIN;
 CALL CaseCountFixer();
 
@@ -132,9 +132,10 @@ ROLLBACK;
 SELECT * 
 FROM Cases
 WHERE CaseID = 5002;
---DROP TRIGGER IF EXISTS CaseCountTracker ON Cases;
+
 
 select 7 as Query; 
+
 
 select 8 as Query;
 
@@ -206,8 +207,8 @@ CREATE TRIGGER AgentFired
     FOR EACH ROW
     EXECUTE FUNCTION FixAgentFired();
 
--- Test for problem 8
 
+-- Test for problem 8
 BEGIN;
 SELECT * FROM Agents WHERE AgentID = 1;
 SELECT * FROM Cases WHERE AgentID = 1;
@@ -215,6 +216,7 @@ DELETE FROM Agents
 WHERE AgentID = 1;
 SELECT * FROM People;
 ROLLBACK;
+
 
 
 select 9 as Query; 
@@ -248,6 +250,7 @@ SELECT MAX(C.year)
 FROM Cases C 
 INNER JOIN Locations L ON L.LocationID = C.LocationID
 WHERE L.location = 'Reykjahlíð' AND C.year < (SELECT EXTRACT(YEAR FROM CURRENT_DATE));
+
 
 
 select 10 as Query; 
@@ -309,7 +312,9 @@ BEGIN
     END LOOP;
 END; $$
 LANGUAGE plpgsql;
-select * FROM FrenemiesOfFrenemies(4);
+
+
+SELECT * FROM FrenemiesOfFrenemies(4);
 
 
 
