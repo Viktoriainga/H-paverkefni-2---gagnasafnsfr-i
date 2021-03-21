@@ -93,20 +93,39 @@ ROLLBACK;*/
 -- INNER JOIN Cases C on C.locationID = L.locationID
 -- GROUP BY L.Location
 
-CREATE OR REPLACE FUNCTION CaseCountTrackerHelper() 
-RETURNS TRIGGER AS $$ 
+CREATE OR REPLACE FUNCTION CaseCountTrackerHelper()
+RETURNS TRIGGER 
+LANGUAGE plpgsql
+AS $$ 
 BEGIN
-CALL CaseCountFixer();
-END; $$
-LANGUAGE plpgsql;
+    IF TG_OP = 'UPDATE' AND OLD.locationID <> NEW.locationID OR TG_OP = 'INSERT' THEN
+        PERFORM CaseCountFixer();
+        RETURN NEW;
+
+    ELSEIF TG_OP = 'DELETE' THEN
+    --FOR EACH ROW
+    PERFORM CaseCountFixer();
+    END IF;
+    RETURN OLD;
+   
+END; $$;
+
+
 
 select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
 AFTER INSERT OR UPDATE OR DELETE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
 
-INSERT INTO Cases
-VALUES(5002, 'The case', TRUE, 2011, 1, 2);
+BEGIN;
+UPDATE Cases 
+SET LocationID = 5 
+WHERE CaseID = 11;
+ROLLBACK;
+
+SELECT * 
+FROM Cases
+WHERE CaseID = 5002;
 --DROP TRIGGER IF EXISTS CaseCountTracker ON Cases;
 
 select 7 as Query; --Asi
