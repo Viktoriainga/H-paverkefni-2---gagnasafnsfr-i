@@ -54,13 +54,18 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
         )
         LOOP
             locCaseCount := (
-                SELECT  COUNT(*)
+                SELECT COUNT(*)
                 FROM Cases C 
                 INNER JOIN Locations L on L.locationID = loctemp
                 GROUP BY C.LocationID
                 HAVING C.locationID = loctemp
                 LIMIT 1
                 );
+            raise notice 'Value: %', locCaseCount;
+            IF locCaseCount IS NULL THEN
+                locCaseCount := 0;
+            END IF;
+            raise notice 'Value2: %', locCaseCount;
             UPDATE Locations
             SET casecount = locCaseCount
             WHERE locationID = loctemp;
@@ -86,21 +91,17 @@ RETURNS TRIGGER
 LANGUAGE plpgsql
 AS $$ 
 BEGIN
-    IF TG_OP = 'UPDATE' OLD.LocationID <> NEW.LocationID THEN
-        CALL CaseCountFixer();
-        RETURN NEW;
-
-    ELSEIF TG_OP = 'INSERT' THEN
-        CALL CaseCountFixer();
+    IF TG_OP = 'UPDATE' AND OLD.locationID <> NEW.locationID OR TG_OP = 'INSERT' THEN
+        PERFORM CaseCountFixer();
         RETURN NEW;
 
     ELSEIF TG_OP = 'DELETE' THEN
-        CALL CaseCountFixer();
+        PERFORM CaseCountFixer();
         END IF;
         RETURN OLD;
    
-END; $$;
-
+END; 
+$$;
 
 select 6 as Query; 
 CREATE TRIGGER CaseCountTracker
@@ -112,17 +113,27 @@ DROP TRIGGER IF EXISTS CaseCountTracker ON Cases;
 
 BEGIN;
 CALL CaseCountFixer();
+
 SELECT *
-FROM Locations; 
+FROM Locations;
+
 SELECT * 
-FROM Cases;
+FROM Cases
+LIMIT 5;
+
 UPDATE Cases
-SET LocationID = 2 
-WHERE LocationID = 1;
-SELECT * 
-FROM Cases;
+SET LocationID = 1 
+WHERE LocationID = 2;
+
 SELECT *
-FROM Locations; 
+FROM Cases
+LIMIT 5;
+
+CALL CaseCountFixer();
+
+SELECT *
+FROM Locations;
+
 ROLLBACK;
 
 
@@ -183,21 +194,18 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE DeleteSecretIdentity(secretIdentity_in int) AS $$
     BEGIN
-        raise notice 'Value: %', secretIdentity_in;
         DELETE FROM People
         WHERE personID = secretIdentity_in;
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION FixAgentFired()
-RETURNS TRIGGER
-AS $$
-BEGIN
-CALL DistributeAgentCases(OLD.AgentID);
-CALL RemoveInvestigatedBy(OLD.AgentID);
-CALL DeleteSecretIdentity(OLD.secretIdentity);
-RETURN OLD;
-END;
+CREATE OR REPLACE FUNCTION FixAgentFired() RETURNS TRIGGER AS $$
+    BEGIN
+        CALL DistributeAgentCases(OLD.AgentID);
+        CALL RemoveInvestigatedBy(OLD.AgentID);
+        CALL DeleteSecretIdentity(OLD.secretIdentity);
+        RETURN OLD;
+    END;
 $$ LANGUAGE plpgsql;
 
 DROP TRIGGER IF EXISTS AgentFired ON Agents
