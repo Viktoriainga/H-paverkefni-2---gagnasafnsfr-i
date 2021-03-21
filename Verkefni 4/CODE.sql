@@ -103,16 +103,13 @@ BEGIN
 END; $$;
 
 
-
 select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
 AFTER INSERT OR UPDATE OR DELETE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
 
 BEGIN;
-SELECT *
-FROM Locations; 
-
+SELECT CaseCountFixer();
 DELETE FROM InvolvedIn 
 WHERE CaseID = 2;
 DELETE FROM Cases 
