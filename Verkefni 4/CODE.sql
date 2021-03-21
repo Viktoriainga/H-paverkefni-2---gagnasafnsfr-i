@@ -36,7 +36,7 @@ AS
     ORDER BY A.AgentID
 
 
-select 2 as Query; --Ingo
+select 2 as Query; 
 
 CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
 AS
@@ -163,6 +163,7 @@ $$ LANGUAGE plpgsql;
 
 
 -- Test for CaseCountFixer()
+
 BEGIN;
 CALL CaseCountFixer();
 SELECT * FROM Locations;
