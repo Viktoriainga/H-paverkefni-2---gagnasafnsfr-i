@@ -93,11 +93,11 @@ LANGUAGE plpgsql
 AS $$ 
 BEGIN
     IF TG_OP = 'UPDATE' AND OLD.locationID <> NEW.locationID OR TG_OP = 'INSERT' THEN
-        PERFORM CaseCountFixer();
+        CALL CaseCountFixer();
         RETURN NEW;
 
     ELSEIF TG_OP = 'DELETE' THEN
-        PERFORM CaseCountFixer();
+        CALL CaseCountFixer();
         END IF;
         RETURN OLD;
    
