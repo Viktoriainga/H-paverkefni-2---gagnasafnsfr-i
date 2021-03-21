@@ -110,9 +110,20 @@ AFTER INSERT OR UPDATE OR DELETE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
 
 BEGIN;
-INSERT INTO Cases 
-VALUES(5005, 'the cases of case', FALSE, 2007, 2,3);
+SELECT *
+FROM Locations; 
+
+DELETE FROM InvolvedIn 
+WHERE CaseID = 2;
+DELETE FROM Cases 
+WHERE CaseID = 2;
+SELECT * 
+FROM Cases;
+SELECT *
+FROM Locations; 
 ROLLBACK;
+
+
 
 SELECT * 
 FROM Cases
@@ -205,7 +216,6 @@ SELECT * FROM People;
 ROLLBACK;
 
 
-
 select 9 as Query; --Vik
 CREATE OR REPLACE FUNCTION yearsSinceCase(IN location VARCHAR(255)) 
 RETURNS INTEGER 
@@ -239,45 +249,6 @@ WHERE L.location = 'Reykjahlíð' AND C.year < (SELECT EXTRACT(YEAR FROM CURRENT
 
 
 select 10 as Query; --Allir
-
-
-CREATE OR REPLACE FUNCTION FrenemiesOfFrenemiess(IN ID INT)
-RETURNS TABLE(
-    PersonID INT,
-    name varchar(255),
-    ProfessionID int, 
-    GenderID int,
-    LocationID int )
-AS $$ 
-DECLARE 
-    peopleInCases record;
-BEGIN 
-    FOR peopleInCases IN (
-    SELECT DISTINCT *
-    FROM People P1 
-    INNER JOIN InvolvedIn I ON I.PersonID = P1.PersonID
-    GROUP BY P1.PersonID, I.CaseID, I.PersonID
-    HAVING I.CaseID IN (
-        SELECT DISTINCT I1.CaseID
-        FROM InvolvedIn I1
-        GROUP BY I1.CaseID, I1.PersonID
-        HAVING I1.PersonID = ID
-    ) AND I.PersonID <> ID
-    ORDER BY I.PersonID)
-    
-    LOOP
-        PersonID := peopleInCases.PersonID;
-        name := peopleInCases.name;
-        ProfessionID := peopleInCases.ProfessionID;
-        GenderID := peopleInCases.GenderID;
-        LocationID := peopleInCases.LocationID;
-        RETURN NEXT;
-    END LOOP;
-
-END; $$
-LANGUAGE plpgsql;
-select * from FrenemiesOfFrenemiess(4);
-
 
 CREATE OR REPLACE FUNCTION FrenemiesOfFrenemies(IN ID INT)
 RETURNS TABLE (
