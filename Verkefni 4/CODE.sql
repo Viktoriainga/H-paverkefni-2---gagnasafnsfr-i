@@ -82,6 +82,7 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
     END;
 $$ LANGUAGE plpgsql;
 
+-- DROP FUNCTION CaseCountFixer();
 /*BEGIN;
 SELECT * FROM CaseCountFixer();
 SELECT * FROM Locations;
@@ -92,12 +93,21 @@ ROLLBACK;*/
 -- INNER JOIN Cases C on C.locationID = L.locationID
 -- GROUP BY L.Location
 
-
+CREATE OR REPLACE FUNCTION CaseCountTrackerHelper() 
+RETURNS TRIGGER AS $$ 
+BEGIN
+CALL CaseCountFixer();
+END; $$
+LANGUAGE plpgsql;
 
 select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
 AFTER INSERT OR UPDATE OR DELETE ON Cases
-EXECUTE FUNCTION CaseCountFixer();
+EXECUTE FUNCTION CaseCountTrackerHelper();
+
+INSERT INTO Cases
+VALUES(5002, 'The case', TRUE, 2011, 1, 2);
+--DROP TRIGGER IF EXISTS CaseCountTracker ON Cases;
 
 select 7 as Query; --Asi
 
@@ -204,14 +214,12 @@ CREATE OR REPLACE FUNCTION FrenemiesOfFrenemies(IN ID INT)
 RETURNS TABLE(
     PersonID INT,
     name varchar(255),
-    ProfessionID int, /* WorksIn */
+    ProfessionID int, 
     GenderID int,
-    LocationID int /* LivesIn */
-)
+    LocationID int )
 AS $$ 
-
 BEGIN 
-    --RETURN query 
+    RETURN query 
     SELECT DISTINCT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID 
     FROM People P1 
     INNER JOIN InvolvedIn I ON I.PersonID = P1.PersonID
@@ -222,35 +230,24 @@ BEGIN
         GROUP BY I1.CaseID, I1.PersonID
         HAVING I1.PersonID = ID
     ) AND I.PersonID <> ID;
-    /*ID := (
-        SELECT PersonID 
-        FROM NEW
-    );*/
-    LOOP 
-    SELECT * FROM FrenemiesOfFrenemiesHelper(ID);
-    --RETURN NEXT;
-    END LOOP;
-    RETURN;     
+    
+SELECT * FROM FrenemiesOfFrenemiesHelper(ID);  
 END; $$
 
 LANGUAGE plpgsql;
 --select * from FrenemiesOfFrenemies(4);
 --SELECT * FROM FrenemiesOfFrenemiesHelper(ID);
-
-
 CREATE OR REPLACE FUNCTION FrenemiesOfFrenemiesHelper(IN ID INT)
 RETURNS TABLE(
     PersonID INT,
     name varchar(255),
-    ProfessionID int, /* WorksIn */
+    ProfessionID int, 
     GenderID int,
-    LocationID int /* LivesIn */
-)
+    LocationID int )
 AS $$ 
 DECLARE 
     chosenPersonID INT := ID;
 BEGIN 
-    RETURN query
     SELECT DISTINCT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID 
     FROM People P1 
     INNER JOIN InvolvedIn I ON I.PersonID = P1.PersonID
@@ -261,8 +258,51 @@ BEGIN
         GROUP BY I1.CaseID, I1.PersonID
         HAVING I1.PersonID = chosenPersonID
     ) AND I.PersonID <> chosenPersonID;
-  
-      
+    LOOP
+        RETURN NEXT;
+    END LOOP;
+
+END; $$
+LANGUAGE plpgsql;
+select * from FrenemiesOfFrenemies(4);
+
+CREATE OR REPLACE FUNCTION FrenemiesOfFrenemies(IN ID INT)
+RETURNS TABLE (
+    PersonID INT,
+    name varchar(255),
+    ProfessionID int, 
+    GenderID int,
+    LocationID int )
+AS $$ 
+DECLARE 
+    peopleInCases record;
+BEGIN 
+    FOR peopleInCases IN (
+        SELECT DISTINCT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID 
+        FROM People P1 
+        INNER JOIN InvolvedIn I ON I.PersonID = P1.PersonID
+        GROUP BY P1.PersonID, I.CaseID, I.PersonID
+        HAVING I.CaseID IN (
+            SELECT I1.CaseID
+            FROM InvolvedIn I1
+            GROUP BY I1.CaseID, I1.PersonID
+            HAVING I1.PersonID = ID
+        ) AND I.PersonID <> ID
+        FOR P1.PersonID IN (
+            SELECT DISTINCT P2.PersonID, P2.name, P2.ProfessionID, P2.GenderID, P2.LocationID 
+            FROM People P2
+            INNER JOIN InvolvedIn I2 ON I2.PersonID = P2.PersonID
+            INNER JOIN Cases C2 ON C2.CaseID = I2.CaseID
+        )
+    )
+    LOOP 
+        PersonID := peopleInCases.PersonID;
+        name := peopleInCases.name;
+        ProfessionID := peopleInCases.ProfessionID;
+        GenderID := peopleInCases.GenderID;
+        LocationID := peopleInCases.LocationID;
+        RETURN NEXT;
+    END LOOP;
 END; $$
 LANGUAGE plpgsql;
 select * from FrenemiesOfFrenemies(4);
