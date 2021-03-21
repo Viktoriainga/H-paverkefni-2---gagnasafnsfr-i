@@ -73,14 +73,11 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
     END;
 $$ LANGUAGE plpgsql;
 
-<<<<<<< HEAD
-BEGIN;
-CALL CaseCountFixer();
-=======
+-- BEGIN;
+-- CALL CaseCountFixer();
 -- DROP FUNCTION CaseCountFixer();
 /*BEGIN;
 SELECT * FROM CaseCountFixer();
->>>>>>> ec82cc1911f770718c569dfe83fe727a49a0a544
 SELECT * FROM Locations;
 ROLLBACK;*/
 
