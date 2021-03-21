@@ -11,6 +11,37 @@ then it is a good idea to take a long hard look at it to make sure you really co
 
 select 1 as Query;  --Asi
 
+CREATE OR REPLACE VIEW statusAgents(acodename, astatus, nocases, comlocation)
+AS
+    SELECT A.AgentID ,COUNT(*) AS NumCases--, L.location
+    FROM Agents A
+    INNER JOIN Cases C ON A.AgentID = C.AgentID
+    INNER JOIN Locations L ON L.LocationID = C.LocationID
+    GROUP BY A.AgentID, C.LocationID
+    ORDER BY NumCases desc
+
+CREATE OR REPLACE VIEW statusAgents(acodename, astatus, nocases, comlocation)
+AS
+    SELECT A1.codename, A1.status, NumCases --, L.location
+    FROM (
+        SELECT A2.codename, A2.AgentID, A2.status, COUNT(*) AS NumCases
+        FROM AGENTS A2
+        INNER JOIN Cases C ON A2.AgentID = C.AgentID
+        GROUP BY A2.AgentID
+        ORDER BY NumCases desc
+        ) AS A1
+    INNER JOIN
+
+
+
+
+    SELECT A.AgentID, L.location, ARRAY_AGG(L.location)
+    FROM Agents A
+    INNER JOIN Cases C ON A.AgentID = C.AgentID
+    INNER JOIN Locations L ON C.LocationID = L.LocationID
+    GROUP BY A.AgentID
+    ORDER BY A.AgentID
+
 select 2 as Query; --Ingo
 
 CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
@@ -24,7 +55,7 @@ AS
     ORDER BY NumCases desc
     LIMIT 3
 
-SELECT * FROM topSuspects
+SELECT * FROM topSuspects;
 
 select 3 as Query; --Vik
 CREATE VIEW findNemeses AS 
@@ -92,6 +123,65 @@ WHERE A.secretIdentity = 8066;
 
 select 4 as Query; --Asi
 
+CREATE OR REPLACE PROCEDURE InsertPerson(
+    name_in varchar(255),
+    description_in varchar(255),
+    gender_in varchar(255),
+    location_in VARCHAR(255)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF name_in = '' THEN
+        RAISE EXCEPTION 'Name cannot be empty';
+    END IF;
+
+    IF gender_in NOT IN (
+        SELECT G.gender
+        FROM Genders G
+    ) THEN
+        RAISE EXCEPTION 'Gender does not exist';
+    END IF;
+
+    IF location_in NOT IN (
+        SELECT L.location
+        FROM Locations L
+    ) THEN
+        RAISE EXCEPTION 'Location not in database';
+    END IF;
+
+    IF description_in NOT IN (
+        SELECT P.description
+        FROM Professions P
+    ) THEN
+        INSERT INTO Professions(ProfessionID, description)
+        VALUES(DEFAULT, description_in);
+    END IF;
+
+    INSERT INTO People(
+        PersonID, name, ProfessionID, GenderID, LocationID)
+    VALUES
+    (default, name_in, 
+        (SELECT P.ProfessionID
+        FROM Professions P
+        WHERE P.description = description_in),
+        (SELECT G.GenderID
+        FROM Genders G
+        WHERE G.gender = gender_in),
+        (SELECT L.LocationID
+        FROM Locations L
+        WHERE L.location = location_in));
+END;
+$$;
+
+BEGIN;
+
+CALL InsertPerson('Mjes','PÍPARI','Male','Reykjavík');
+SELECT * FROM People;
+
+ROLLBACK;
+
+
 select 5 as Query; --Ingo
 
 CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
@@ -125,6 +215,53 @@ CaseCountFixer()
 END;
 
 select 7 as Query; --Asi
+
+CREATE OR REPLACE PROCEDURE StartInvestigation(
+    AgentID_in int,
+    PersonID_in int,
+    title_in varchar(255)
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF AgentID_in NOT IN (
+    SELECT A.AgentID
+    FROM Agents A
+    ) THEN
+    RAISE EXCEPTION 'Agent does not exist';
+    END IF;
+
+    IF PersonID_in NOT IN (
+    SELECT P.PersonID
+    FROM People P
+    ) THEN
+    RAISE EXCEPTION 'Person does not exist';
+    END IF;
+
+    INSERT INTO Cases(CaseID, title, isClosed, year, AgentID, LocationID)
+    VALUES(default, title_in, FALSE,
+    (SELECT EXTRACT(YEAR FROM CURRENT_DATE)),
+    AgentID_in,
+    (SELECT L.locationID
+    FROM Locations L
+    INNER JOIN People P ON L.LocationID = P.LocationID
+    WHERE P.PersonID = PersonID_in));
+
+    INSERT INTO InvolvedIn(PersonID,CaseID,AgentID,isCulprit)
+    VALUES(PersonID_in,
+    (SELECT CaseID
+    FROM Cases
+    WHERE title = title_in), AgentID_in, NULL);
+END;
+$$;
+
+
+BEGIN;
+
+CALL StartInvestigation(10,1,'BLAI OSTURINN');
+SELECT * FROM InvolvedIn;
+
+ROLLBACK;
 
 select 8 as Query; --Ingo
 
