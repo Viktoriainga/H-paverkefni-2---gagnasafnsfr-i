@@ -68,11 +68,9 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
                 HAVING C.locationID = loctemp
                 LIMIT 1
                 );
-            raise notice 'Value: %', locCaseCount;
             IF locCaseCount IS NULL THEN
                 locCaseCount := 0;
             END IF;
-            raise notice 'Value2: %', locCaseCount;
             UPDATE Locations
             SET casecount = locCaseCount
             WHERE locationID = loctemp;
@@ -80,18 +78,14 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
     END;
 $$ LANGUAGE plpgsql;
 
--- BEGIN;
--- CALL CaseCountFixer();
--- DROP FUNCTION CaseCountFixer();
+-- Test for CaseCountFixer()
+
 BEGIN;
 CALL CaseCountFixer();
 SELECT * FROM Locations;
 ROLLBACK;
 
--- SELECT L.location, COUNT(*) as locCaseCount
--- FROM Locations L 
--- INNER JOIN Cases C on C.locationID = L.locationID
--- GROUP BY L.Location
+select 6 as Query; --Vik
 
 CREATE OR REPLACE FUNCTION CaseCountTrackerHelper()
 RETURNS TRIGGER 
@@ -110,10 +104,11 @@ BEGIN
 END; 
 $$;
 
-select 6 as Query; --Vik
 CREATE TRIGGER CaseCountTracker
 AFTER INSERT OR UPDATE OR DELETE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
+
+-- Test for CaseCountFixer()
 
 BEGIN;
 CALL CaseCountFixer();
@@ -156,7 +151,7 @@ RETURNS int
 AS $$
 BEGIN
 RETURN (
-    SELECT A.AgentID --, COUNT(*) AS currCases
+    SELECT A.AgentID
     FROM Agents A
     INNER JOIN Cases C ON C.AgentID = A.AgentID
     GROUP BY A.AgentID
@@ -166,7 +161,6 @@ RETURN (
     );
 END;
 $$ LANGUAGE plpgsql;
-
 
 DROP PROCEDURE DistributeAgentCases(agentId_in int);
 CREATE OR REPLACE PROCEDURE DistributeAgentCases(agentId_in int) AS $$
@@ -220,13 +214,14 @@ CREATE TRIGGER AgentFired
     FOR EACH ROW
     EXECUTE FUNCTION FixAgentFired();
 
+-- Test for problem 8
+
 BEGIN;
 SELECT * FROM Agents WHERE AgentID = 1;
 SELECT * FROM Cases WHERE AgentID = 1;
 DELETE FROM Agents
 WHERE AgentID = 1;
 SELECT * FROM People;
-
 ROLLBACK;
 
 
