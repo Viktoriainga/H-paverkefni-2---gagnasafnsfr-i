@@ -68,6 +68,11 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
                 HAVING C.locationID = loctemp
                 LIMIT 1
                 );
+            raise notice 'Value: %', locCaseCount;
+            IF locCaseCount IS NULL THEN
+                locCaseCount := 0;
+            END IF;
+            raise notice 'Value2: %', locCaseCount;
             UPDATE Locations
             SET casecount = locCaseCount
             WHERE locationID = loctemp;
@@ -122,7 +127,7 @@ LIMIT 5;
 
 UPDATE Cases
 SET LocationID = 1 
-WHERE CaseID = 2;
+WHERE LocationID = 2;
 
 SELECT *
 FROM Cases
