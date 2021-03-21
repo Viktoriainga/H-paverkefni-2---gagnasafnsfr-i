@@ -94,7 +94,7 @@ select 4 as Query; --Asi
 
 select 5 as Query; --Ingo
 
-CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
+CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
     DECLARE
         locCaseCount int;
         locid int;
@@ -120,7 +120,7 @@ CREATE OR REPLACE FUNCTION CaseCountFixer() RETURNS void AS $$
 $$ LANGUAGE plpgsql;
 
 BEGIN;
-SELECT * FROM CaseCountFixer();
+CALL CaseCountFixer();
 SELECT * FROM Locations;
 ROLLBACK;
 
@@ -148,41 +148,42 @@ RETURNS int
 AS $$
 BEGIN
 RETURN (
-    SELECT A.AgentID, COUNT(*) AS currCases
+    SELECT A.AgentID--, COUNT(*) AS currCases
     FROM Agents A
     INNER JOIN Cases C ON C.AgentID = A.AgentID
     GROUP BY A.AgentID
-    ORDER BY currCases ASC, A.AgentID ASC
+    ORDER BY COUNT(*) ASC, A.AgentID ASC
     LIMIT 1
-    ).AgentID;
+    );
 END;
 $$ LANGUAGE plpgsql;
 
 -- A lidur
-CREATE OR REPLACE FUNCTION DistributeAgentCases() RETURNS void AS $$
+DROP FUNCTION DistributeAgentCases();
+CREATE OR REPLACE PROCEDURE DistributeAgentCases(agendId_in int) AS $$
     DECLARE
         AgentCases cases%ROWTYPE;
         newAgentID int;
     BEGIN
-        FOR AgentCases IN (
+        FOR AgentCases IN ( -- Get all cases of OLD agent
             SELECT C.CaseID
             FROM Cases C
-            WHERE C.AgentID = OLD.AgentID
+            WHERE C.AgentID = 1agendId_in
         )
         LOOP
-            newAgentID := GetNewAgentID();
+            newAgentID := GetNewAgentID(); -- Returns current agent with lowest casecount
             UPDATE Cases
-            SET AgentID = newAgentID
+            SET AgentID = newAgentID -- Case.AgentID
             WHERE caseID = AgentCases.caseID;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION RemoveInvestigatedBy() RETURNS void AS $$
+CREATE OR REPLACE PROCEDURE RemoveInvestigatedBy(agendId_in int) AS $$
     BEGIN
         UPDATE InvolvedIn
         SET AgentID = NULL
-        WHERE AgentID = OLD.AgentID;
+        WHERE AgentID = agendId_in;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -190,21 +191,26 @@ CREATE OR REPLACE FUNCTION FixAgentFired()
 RETURNS TRIGGER
 AS $$
 BEGIN
-DistributeAgentCases();
+CALL DistributeAgentCases(OLD.AgentID);
+CALL RemoveInvestigatedBy(OLD.AgentID);
+RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS AgentFired ON Agents
+
 CREATE TRIGGER AgentFired
-AFTER DELETE ON Agents
-FOR EACH ROW
-BEGIN
-FixAgentFired()
-END;
+    BEFORE DELETE ON Agents
+    FOR EACH ROW
+    EXECUTE PROCEDURE FixAgentFired();
 
-BEGIN
-
-SELECT * FROM Cases
+BEGIN;
+DELETE FROM Agents
+WHERE AgentID = 1;
+SELECT * FROM Agents;
+SELECT * FROM Cases;
 ROLLBACK;
+
 
 
 select 9 as Query; --Vik
