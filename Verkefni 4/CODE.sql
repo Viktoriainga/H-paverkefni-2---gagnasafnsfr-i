@@ -94,11 +94,11 @@ LANGUAGE plpgsql
 AS $$ 
 BEGIN
     IF TG_OP = 'UPDATE' AND OLD.locationID <> NEW.locationID OR TG_OP = 'INSERT' THEN
-        PERFORM CaseCountFixer();
+        CALL CaseCountFixer();
         RETURN NEW;
 
     ELSEIF TG_OP = 'DELETE' THEN
-        PERFORM CaseCountFixer();
+        CALL CaseCountFixer();
         END IF;
         RETURN OLD;
    
@@ -111,11 +111,14 @@ AFTER INSERT OR UPDATE OR DELETE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
 
 BEGIN;
-SELECT CaseCountFixer();
-DELETE FROM InvolvedIn 
-WHERE CaseID = 2;
-DELETE FROM Cases 
-WHERE CaseID = 2;
+CALL CaseCountFixer();
+SELECT *
+FROM Locations; 
+SELECT * 
+FROM Cases;
+UPDATE Cases
+SET LocationID = 25 
+WHERE LocationID = 26;
 SELECT * 
 FROM Cases;
 SELECT *
