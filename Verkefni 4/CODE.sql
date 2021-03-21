@@ -13,15 +13,17 @@ select 1 as Query;  --Asi
 
 select 2 as Query; --Ingo
 
+DROP VIEW topSuspects
+
 CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
 AS
-    SELECT P.personID, P.name, COUNT(*) AS NumCases
+    SELECT P.personID, P.name, L.location--COUNT(*) AS NumCases
     FROM People P 
     INNER JOIN InvolvedIn I ON I.personID = P.personID
     INNER JOIN Locations L ON L.locationID = P.locationID
     WHERE L.location = 'Stokkseyri'
-    GROUP BY P.personID
-    ORDER BY NumCases desc
+    GROUP BY P.personID, L.location
+    ORDER BY COUNT(*) desc
     LIMIT 3
 
 SELECT * FROM topSuspects
