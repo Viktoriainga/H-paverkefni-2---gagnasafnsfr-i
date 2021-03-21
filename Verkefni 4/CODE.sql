@@ -98,10 +98,9 @@ BEGIN
         RETURN NEW;
 
     ELSEIF TG_OP = 'DELETE' THEN
-    --FOR EACH ROW
-    PERFORM CaseCountFixer();
-    END IF;
-    RETURN OLD;
+        PERFORM CaseCountFixer();
+        END IF;
+        RETURN OLD;
    
 END; $$;
 
@@ -113,10 +112,20 @@ AFTER INSERT OR UPDATE OR DELETE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
 
 BEGIN;
-UPDATE Cases 
-SET LocationID = 5 
-WHERE CaseID = 11;
+SELECT *
+FROM Locations; 
+
+DELETE FROM InvolvedIn 
+WHERE CaseID = 2;
+DELETE FROM Cases 
+WHERE CaseID = 2;
+SELECT * 
+FROM Cases;
+SELECT *
+FROM Locations; 
 ROLLBACK;
+
+
 
 SELECT * 
 FROM Cases
@@ -209,7 +218,6 @@ SELECT * FROM People;
 ROLLBACK;
 
 
-
 select 9 as Query; --Vik
 CREATE OR REPLACE FUNCTION yearsSinceCase(IN location VARCHAR(255)) 
 RETURNS INTEGER 
@@ -244,37 +252,6 @@ WHERE L.location = 'Reykjahlíð' AND C.year < (SELECT EXTRACT(YEAR FROM CURRENT
 
 select 10 as Query; --Allir
 
-/*
-CREATE OR REPLACE FUNCTION FrenemiesOfFrenemiesHelper(IN ID INT)
-RETURNS TABLE(
-    PersonID INT,
-    name varchar(255),
-    ProfessionID int, 
-    GenderID int,
-    LocationID int )
-AS $$ 
-DECLARE 
-    chosenPersonID INT := ID;
-BEGIN 
-    SELECT DISTINCT P1.PersonID, P1.name, P1.ProfessionID, P1.GenderID, P1.LocationID 
-    FROM People P1 
-    INNER JOIN InvolvedIn I ON I.PersonID = P1.PersonID
-    GROUP BY P1.PersonID, I.CaseID, I.PersonID
-    HAVING I.CaseID IN (
-        SELECT I1.CaseID
-        FROM InvolvedIn I1
-        GROUP BY I1.CaseID, I1.PersonID
-        HAVING I1.PersonID = chosenPersonID
-    ) AND I.PersonID <> chosenPersonID;
-    LOOP
-        RETURN NEXT;
-    END LOOP;
-
-END; $$
-LANGUAGE plpgsql;
-select * from FrenemiesOfFrenemies(4);
-*/
-
 CREATE OR REPLACE FUNCTION FrenemiesOfFrenemies(IN ID INT)
 RETURNS TABLE (
     PersonID INT,
@@ -296,8 +273,8 @@ BEGIN
             SELECT I1.CaseID
             FROM InvolvedIn I1
             GROUP BY I1.CaseID, I1.PersonID
-            HAVING I1.PersonID = ID
-        ) AND I.PersonID <> ID
+            HAVING I1.PersonID = 4
+        ) AND I.PersonID <> 4
         ORDER BY P1.PersonID
     )
     LOOP 
@@ -309,13 +286,28 @@ BEGIN
         RETURN NEXT;
 
         FOR peopleInCases2 IN (
+            /*SELECT DISTINCT P2.PersonID, P2.name, P2.ProfessionID, P2.GenderID, P2.LocationID 
+            FROM People P2
+            INNER JOIN InvolvedIn I2 ON I2.PersonID = P2.PersonID
+            WHERE P2.PersonID <> peopleInCases.PersonID AND P2.PersonID <> ID
+            AND I2.CaseID IN (
+                SELECT I3.CaseID
+                FROM InvolvedIn I3
+                WHERE I3.PersonID = peopleInCases.PersonID ))*/
             SELECT DISTINCT P2.PersonID, P2.name, P2.ProfessionID, P2.GenderID, P2.LocationID 
             FROM People P2
             INNER JOIN InvolvedIn I2 ON I2.PersonID = P2.PersonID
-            WHERE P2.PersonID <> peopleInCases.PersonID AND I2.CaseID IN (
-                SELECT I3.CaseID
-                FROM InvolvedIn I3
-                WHERE I3.PersonID = peopleInCases.PersonID ))
+            GROUP BY P2.PersonID, I2.CaseID, I2.PersonID
+            HAVING I2.PersonID <> ID AND I2.PersonID <> peopleInCases.PersonID 
+            AND I2.CASEID IN (
+                SELECT DISTINCT C2.CaseID
+                FROM Cases C2
+                INNER JOIN InvolvedIn I3 ON I3.CaseID = C2.CaseID 
+                INNER JOIN People P3 ON P3.PersonID = I3.PersonID
+                GROUP BY C2.CaseID, P3.PersonID
+                HAVING P3.PersonID = peopleInCases.PersonID
+            ) AND I2.PersonID <> ID
+            ORDER BY P2.PersonID )
                 
             LOOP 
             PersonID := peopleInCases2.PersonID;
@@ -330,3 +322,22 @@ BEGIN
 END; $$
 LANGUAGE plpgsql;
 select * FROM FrenemiesOfFrenemies(4);
+
+
+CREATE OR REPLACE FUNCTION caseIdFinder(IN ID INT)
+RETURNS INTEGER
+AS $$ 
+DECLARE 
+    correctCaseID INTEGER;
+BEGIN 
+    correctCaseID := (
+    SELECT I.CaseID 
+    FROM InvolvedIn I 
+    WHERE I.PersonID = ID
+    LIMIT 1
+    );
+
+RETURN correctCaseID;
+END; $$
+LANGUAGE plpgsql;
+
