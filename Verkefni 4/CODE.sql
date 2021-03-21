@@ -52,23 +52,23 @@ CREATE OR REPLACE PROCEDURE CaseCountFixer() AS $$
     DECLARE
         locCaseCount int;
         locid int;
-        loctemp Locations%ROWTYPE;
+        loctemp int;
     BEGIN
         FOR loctemp IN (
-            SELECT * FROM Locations
+            SELECT locationID FROM Locations
         )
         LOOP
-            locid := loctemp.locationID;
             locCaseCount := (
-                SELECT COUNT(*)
-                FROM Locations L 
-                INNER JOIN Cases C on C.locationID = locid
-                --GROUP BY L.Location
+                SELECT  COUNT(*)
+                FROM Cases C 
+                INNER JOIN Locations L on L.locationID = loctemp
+                GROUP BY C.LocationID
+                HAVING C.locationID = loctemp
                 LIMIT 1
                 );
             UPDATE Locations
             SET casecount = locCaseCount
-            WHERE locationID = locid;
+            WHERE locationID = loctemp;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
@@ -76,10 +76,10 @@ $$ LANGUAGE plpgsql;
 -- BEGIN;
 -- CALL CaseCountFixer();
 -- DROP FUNCTION CaseCountFixer();
-/*BEGIN;
-SELECT * FROM CaseCountFixer();
+BEGIN;
+CALL CaseCountFixer();
 SELECT * FROM Locations;
-ROLLBACK;*/
+ROLLBACK;
 
 -- SELECT L.location, COUNT(*) as locCaseCount
 -- FROM Locations L 
