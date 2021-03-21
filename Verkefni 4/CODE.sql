@@ -118,47 +118,57 @@ select 7 as Query; --Asi
 
 select 8 as Query; --Ingo
 
-CREATE OR REPLACE FUNCTION GetNewAgentID()
+CREATE OR REPLACE FUNCTION GetNewAgentID(agentId_in int)
 RETURNS int
 AS $$
 BEGIN
 RETURN (
-    SELECT A.AgentID--, COUNT(*) AS currCases
+    SELECT A.AgentID --, COUNT(*) AS currCases
     FROM Agents A
     INNER JOIN Cases C ON C.AgentID = A.AgentID
     GROUP BY A.AgentID
-    ORDER BY COUNT(*) ASC, A.AgentID ASC
+    HAVING A.AgentID <> agentId_in
+    ORDER BY COUNT(*) ASC, A.designation ASC
     LIMIT 1
     );
 END;
 $$ LANGUAGE plpgsql;
 
--- A lidur
-DROP FUNCTION DistributeAgentCases();
-CREATE OR REPLACE PROCEDURE DistributeAgentCases(agendId_in int) AS $$
+
+DROP PROCEDURE DistributeAgentCases(agentId_in int);
+CREATE OR REPLACE PROCEDURE DistributeAgentCases(agentId_in int) AS $$
     DECLARE
-        AgentCases cases%ROWTYPE;
+        AgentCases int;
         newAgentID int;
     BEGIN
-        FOR AgentCases IN ( -- Get all cases of OLD agent
+        FOR AgentCases in ( -- Get all cases of OLD agent
             SELECT C.CaseID
             FROM Cases C
-            WHERE C.AgentID = 1agendId_in
+            WHERE C.AgentID = agentId_in
         )
         LOOP
-            newAgentID := GetNewAgentID(); -- Returns current agent with lowest casecount
+            newAgentID := GetNewAgentID(agentId_in); -- Returns current agent with lowest casecount
             UPDATE Cases
             SET AgentID = newAgentID -- Case.AgentID
-            WHERE caseID = AgentCases.caseID;
+            WHERE caseID = AgentCases;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE PROCEDURE RemoveInvestigatedBy(agendId_in int) AS $$
+DROP PROCEDURE RemoveInvestigatedBy(agentId_in int)
+CREATE OR REPLACE PROCEDURE RemoveInvestigatedBy(agentId_in int) AS $$
     BEGIN
         UPDATE InvolvedIn
         SET AgentID = NULL
-        WHERE AgentID = agendId_in;
+        WHERE AgentID = agentId_in;
+    END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE DeleteSecretIdentity(secretIdentity_in int) AS $$
+    BEGIN
+        raise notice 'Value: %', secretIdentity_in;
+        DELETE FROM People
+        WHERE personID = secretIdentity_in;
     END;
 $$ LANGUAGE plpgsql;
 
@@ -168,6 +178,7 @@ AS $$
 BEGIN
 CALL DistributeAgentCases(OLD.AgentID);
 CALL RemoveInvestigatedBy(OLD.AgentID);
+CALL DeleteSecretIdentity(OLD.secretIdentity);
 RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -177,13 +188,15 @@ DROP TRIGGER IF EXISTS AgentFired ON Agents
 CREATE TRIGGER AgentFired
     BEFORE DELETE ON Agents
     FOR EACH ROW
-    EXECUTE PROCEDURE FixAgentFired();
+    EXECUTE FUNCTION FixAgentFired();
 
 BEGIN;
+SELECT * FROM Agents WHERE AgentID = 1;
+SELECT * FROM Cases WHERE AgentID = 1;
 DELETE FROM Agents
 WHERE AgentID = 1;
-SELECT * FROM Agents;
-SELECT * FROM Cases;
+SELECT * FROM People;
+
 ROLLBACK;
 
 
