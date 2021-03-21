@@ -323,6 +323,10 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE DeleteSecretIdentity(secretIdentity_in int) AS $$
     BEGIN
+        UPDATE Agents
+        SET secretIdentity = NULL
+        WHERE secretIdentity = secretIdentity_in;
+
         DELETE FROM People
         WHERE personID = secretIdentity_in;
     END;
@@ -330,9 +334,9 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION FixAgentFired() RETURNS TRIGGER AS $$
     BEGIN
+        CALL DeleteSecretIdentity(OLD.secretIdentity);
         CALL DistributeAgentCases(OLD.AgentID);
         CALL RemoveInvestigatedBy(OLD.AgentID);
-        CALL DeleteSecretIdentity(OLD.secretIdentity);
         RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
