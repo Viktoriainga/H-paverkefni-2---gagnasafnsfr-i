@@ -57,3 +57,9 @@ CREATE TABLE Passwords (
     password VARCHAR(255) DEFAULT '[REDACTED]',
     FOREIGN KEY (AgentID) REFERENCES Agents (AgentID) ON DELETE CASCADE ON UPDATE CASCADE
 );
+
+SELECT *
+FROM InvolvedIn I
+INNER JOIN Cases C ON I.CaseID = C.CaseID
+INNER JOIN Locations L ON L.LocationID = C.LocationID
+WHERE C.AgentID = 1 AND L.location = 'Hnífsdalur' ;

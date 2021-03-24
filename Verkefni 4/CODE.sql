@@ -4,51 +4,40 @@ CREATE DATABASE PIV
 
 select 1 as Query;  
 
-CREATE OR REPLACE VIEW statusAgents(acodename, astatus, nocases, comlocation)
-AS
-    SELECT A.AgentID ,COUNT() AS NumCases--, L.location
+CREATE OR REPLACE VIEW statusAgents AS
+    SELECT A.AgentID, A.codename, A.status, COUNT(DISTINCT C1.CaseID) AS NumCases, 
+    ARRAY(
+        SELECT L.location
+        FROM Locations L
+        INNER JOIN Cases C ON C.LocationID = L.LocationID
+        GROUP BY L.location, C.LocationID, C.AgentID
+        HAVING C.AgentID = A.AgentID
+        AND COUNT(C.LocationID) >= ALL ((
+            SELECT COUNT(C1.LocationID)
+            FROM Cases C1
+            INNER JOIN Locations L1 ON L1.LocationID = C1.LocationID
+            GROUP BY C1.LocationID, C1.AgentID
+            HAVING C1.AgentID = A.AgentID
+        )))
     FROM Agents A
-    INNER JOIN Cases C ON A.AgentID = C.AgentID
-    INNER JOIN Locations L ON L.LocationID = C.LocationID
-    GROUP BY A.AgentID, C.LocationID
-    ORDER BY NumCases desc
-
-CREATE OR REPLACE VIEW statusAgents(acodename, astatus, nocases, comlocation)
-AS
-    SELECT A1.codename, A1.status, NumCases --, L.location
-    FROM (
-        SELECT A2.codename, A2.AgentID, A2.status, COUNT() AS NumCases
-        FROM AGENTS A2
-        INNER JOIN Cases C ON A2.AgentID = C.AgentID
-        GROUP BY A2.AgentID
-        ORDER BY NumCases desc
-        ) AS A1
-    INNER JOIN
-
-
-
-
-    SELECT A.AgentID, L.location, ARRAY_AGG(L.location)
-    FROM Agents A
-    INNER JOIN Cases C ON A.AgentID = C.AgentID
-    INNER JOIN Locations L ON C.LocationID = L.LocationID
-    GROUP BY A.AgentID
-    ORDER BY A.AgentID
+    INNER JOIN Cases C1 ON A.AgentID = C1.AgentID
+    GROUP BY A.AgentID, C1.AgentID;
 
 
 select 2 as Query; 
 
-CREATE OR REPLACE VIEW topSuspects(susID, susName, susTown)
-AS
-    SELECT P.personID, P.name, L.location -- COUNT(*) AS NumCases
+CREATE OR REPLACE VIEW topSuspects AS
+    SELECT P.personID, P.name, L.location 
     FROM People P 
     INNER JOIN InvolvedIn I ON I.personID = P.personID
     INNER JOIN Locations L ON L.locationID = P.locationID
     WHERE L.location = 'Stokkseyri'
     GROUP BY P.personID, L.location
     ORDER BY COUNT(*) desc
-    LIMIT 3
+    LIMIT 3;
 
+
+/* Test for view */ 
 SELECT * FROM topSuspects;
 
 
@@ -123,13 +112,6 @@ BEGIN
 END;
 $$;
 
-BEGIN;
-
-CALL InsertPerson('Mjes','PÍPARI','Male','Reykjavík');
-SELECT * FROM People;
-
-ROLLBACK;
-
 
 select 5 as Query; 
 
@@ -171,6 +153,7 @@ ROLLBACK;
 
 select 6 as Query; 
 
+/* Trigger function for CaseCountTracker */
 CREATE OR REPLACE FUNCTION CaseCountTrackerHelper()
 RETURNS TRIGGER 
 LANGUAGE plpgsql
@@ -184,45 +167,13 @@ BEGIN
         CALL CaseCountFixer();
         END IF;
         RETURN OLD;
-   
 END; 
 $$;
 
+/* Trigger for update, insert or delete on Cases */
 CREATE TRIGGER CaseCountTracker
 AFTER INSERT OR DELETE OR UPDATE ON Cases
 EXECUTE FUNCTION CaseCountTrackerHelper();
-
-
--- Test for CaseCountFixer()
-
-BEGIN;
-CALL CaseCountFixer();
-
-SELECT *
-FROM Locations;
-
-SELECT * 
-FROM Cases
-LIMIT 5;
-
-UPDATE Cases
-SET LocationID = 1 
-WHERE LocationID = 2;
-
-SELECT *
-FROM Cases
-LIMIT 5;
-
-CALL CaseCountFixer();
-
-SELECT *
-FROM Locations;
-
-ROLLBACK;
-
-SELECT * 
-FROM Cases
-WHERE CaseID = 5002;
 
 
 select 7 as Query; 
@@ -267,14 +218,6 @@ END;
 $$;
 
 
-BEGIN;
-
-CALL StartInvestigation(10,1,'BLAI OSTURINN');
-SELECT * FROM InvolvedIn;
-
-ROLLBACK;
-
-
 select 8 as Query;
 
 CREATE OR REPLACE FUNCTION GetNewAgentID(agentId_in int)
@@ -293,7 +236,6 @@ RETURN (
 END;
 $$ LANGUAGE plpgsql;
 
-DROP PROCEDURE DistributeAgentCases(agentId_in int);
 CREATE OR REPLACE PROCEDURE DistributeAgentCases(agentId_in int) AS $$
     DECLARE
         AgentCases int;
@@ -307,13 +249,12 @@ CREATE OR REPLACE PROCEDURE DistributeAgentCases(agentId_in int) AS $$
         LOOP
             newAgentID := GetNewAgentID(agentId_in); -- Returns current agent with lowest casecount
             UPDATE Cases
-            SET AgentID = newAgentID -- Case.AgentID
+            SET AgentID = newAgentID 
             WHERE caseID = AgentCases;
         END LOOP;
     END;
 $$ LANGUAGE plpgsql;
 
-DROP PROCEDURE RemoveInvestigatedBy(agentId_in int)
 CREATE OR REPLACE PROCEDURE RemoveInvestigatedBy(agentId_in int) AS $$
     BEGIN
         UPDATE InvolvedIn
@@ -333,12 +274,10 @@ CREATE OR REPLACE FUNCTION FixAgentFired() RETURNS TRIGGER AS $$
     BEGIN
         CALL DistributeAgentCases(OLD.AgentID);
         CALL RemoveInvestigatedBy(OLD.AgentID);
-        CALL DeleteSecretIdentity(OLD.secretIdentity);
+        --CALL DeleteSecretIdentity(OLD.secretIdentity);
         RETURN OLD;
     END;
 $$ LANGUAGE plpgsql;
-
-DROP TRIGGER IF EXISTS AgentFired ON Agents
 
 CREATE TRIGGER AgentFired
     BEFORE DELETE ON Agents
@@ -348,13 +287,12 @@ CREATE TRIGGER AgentFired
 
 -- Test for problem 8
 BEGIN;
-SELECT * FROM Agents WHERE AgentID = 1;
-SELECT * FROM Cases WHERE AgentID = 1;
+SELECT * FROM Agents WHERE AgentID = 2;
+SELECT * FROM Cases WHERE AgentID = 2;
 DELETE FROM Agents
-WHERE AgentID = 1;
+WHERE AgentID = 2;
 SELECT * FROM People;
 ROLLBACK;
-
 
 
 select 9 as Query; 
@@ -381,14 +319,6 @@ BEGIN
 
 END; $$
 LANGUAGE plpgsql; 
-
-SELECT yearsSinceCase('Reykjahlíð');
-
-SELECT MAX(C.year)
-FROM Cases C 
-INNER JOIN Locations L ON L.LocationID = C.LocationID
-WHERE L.location = 'Reykjahlíð' AND C.year < (SELECT EXTRACT(YEAR FROM CURRENT_DATE));
-
 
 
 select 10 as Query; 
@@ -451,8 +381,10 @@ BEGIN
 END; $$
 LANGUAGE plpgsql;
 
-
+/* Test for problem 10 */
 SELECT * FROM FrenemiesOfFrenemies(4);
+
+
 
 
 
