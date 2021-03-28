@@ -42,6 +42,7 @@ tables = [
 def main_generator_PD():
     with open("prj5_check_FD.sql", "w") as f:
         for table, attributes in tables:
+            #if table == 'Citizens':
             for a,b in permutations(attributes, 2):
                 query = FD_template.format(R=table, A=a, B=b)
                 f.write(query)      
@@ -50,6 +51,7 @@ def main_generator_PD():
 def main_generator_MVD():
     with open("prj5_check_MVD.sql", "w") as f:
         for table, attributes in tables:
+            #if table == 'Citizens':
             for a,b,c in permutations(attributes, 3):
                 query = MVD_template.format(R=table, A=a, B=b, C=c)
                 f.write(query)
