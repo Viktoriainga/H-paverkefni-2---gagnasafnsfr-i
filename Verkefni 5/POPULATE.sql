@@ -1,18 +1,18 @@
 -- CivilServices
 
-INSERT INTO CivilService_CSID_PN
+INSERT INTO CivilServices_CSID_PN
 SELECT DISTINCT CSID, PN
 FROM CivilService;
 
-INSERT INTO CivilService_HID_HS_HZ
+INSERT INTO CivilServices_HID_HS_HZ
 SELECT DISTINCT HID, HS, HZ
 FROM CivilService;
 
-INSERT INTO CivilService_CSID_HID_S
+INSERT INTO CivilServices_CSID_HID_S
 SELECT DISTINCT CSID, HID, S 
 FROM CivilService;
 
-INSERT INTO CivilService_HZ_HC
+INSERT INTO CivilServices_HZ_HC
 SELECT DISTINCT HZ, HC 
 FROM CivilService;
 
