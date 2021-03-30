@@ -1,20 +1,20 @@
 -- CivilServices
 
-INSERT INTO CivilService_CSID_PN
-SELECT DISTINCT CSID, PN
-FROM CivilService;
-
-INSERT INTO CivilService_HID_HS_HZ
-SELECT DISTINCT HID, HS, HZ
-FROM CivilService;
-
-INSERT INTO CivilService_CSID_HID_S
-SELECT DISTINCT CSID, HID, S 
-FROM CivilService;
-
-INSERT INTO CivilService_HZ_HC
+INSERT INTO CivilServices_HZ_HC
 SELECT DISTINCT HZ, HC 
-FROM CivilService;
+FROM CivilServices;
+
+INSERT INTO CivilServices_CSID_PN
+SELECT DISTINCT CSID, PN
+FROM CivilServices;
+
+INSERT INTO CivilServices_HID_HS_HZ
+SELECT DISTINCT HID, HS, HZ
+FROM CivilServices;
+
+INSERT INTO CivilServices_CSID_HID_S
+SELECT DISTINCT CSID, HID, S 
+FROM CivilServices;
 
 -- Projects
 
@@ -26,12 +26,12 @@ INSERT INTO Projects_SID_SN
 SELECT DISTINCT SID, SN
 FROM Projects;
 
-INSERT INTO Projects_ID_MID
-SELECT DISTINCT ID, MID 
-FROM Projects;
-
 INSERT INTO Projects_MID_MN
 SELECT DISTINCT MID, MN
+FROM Projects;
+
+INSERT INTO Projects_ID_MID
+SELECT DISTINCT ID, MID 
 FROM Projects;
 
 -- Citizens
