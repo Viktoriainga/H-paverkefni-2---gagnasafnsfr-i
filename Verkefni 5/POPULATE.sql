@@ -2,19 +2,19 @@
 
 INSERT INTO CivilServices_CSID_PN
 SELECT DISTINCT CSID, PN
-FROM CivilService;
+FROM CivilServices;
 
 INSERT INTO CivilServices_HID_HS_HZ
 SELECT DISTINCT HID, HS, HZ
-FROM CivilService;
+FROM CivilServices;
 
 INSERT INTO CivilServices_CSID_HID_S
 SELECT DISTINCT CSID, HID, S 
-FROM CivilService;
+FROM CivilServices;
 
 INSERT INTO CivilServices_HZ_HC
 SELECT DISTINCT HZ, HC 
-FROM CivilService;
+FROM CivilServices;
 
 -- Projects
 
