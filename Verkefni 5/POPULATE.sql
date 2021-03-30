@@ -1,5 +1,9 @@
 -- CivilServices
 
+INSERT INTO CivilServices_HZ_HC
+SELECT DISTINCT HZ, HC 
+FROM CivilServices;
+
 INSERT INTO CivilServices_CSID_PN
 SELECT DISTINCT CSID, PN
 FROM CivilServices;
@@ -12,10 +16,6 @@ INSERT INTO CivilServices_CSID_HID_S
 SELECT DISTINCT CSID, HID, S 
 FROM CivilServices;
 
-INSERT INTO CivilServices_HZ_HC
-SELECT DISTINCT HZ, HC 
-FROM CivilServices;
-
 -- Projects
 
 INSERT INTO Projects_PID_PN
@@ -26,12 +26,12 @@ INSERT INTO Projects_SID_SN
 SELECT DISTINCT SID, SN
 FROM Projects;
 
-INSERT INTO Projects_ID_MID
-SELECT DISTINCT ID, MID 
-FROM Projects;
-
 INSERT INTO Projects_MID_MN
 SELECT DISTINCT MID, MN
+FROM Projects;
+
+INSERT INTO Projects_ID_MID
+SELECT DISTINCT ID, MID 
 FROM Projects;
 
 -- Citizens
