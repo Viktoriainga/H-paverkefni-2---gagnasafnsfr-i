@@ -40,7 +40,7 @@ FROM Projects;
 
 -- Citizens
 
-INSERT INTO Citizens_CID_CN_CS_CNr_CZ_EID
+INSERT INTO Citizens_CID
 SELECT DISTINCT CID, CN, CS, CNr, CZ, EID
 FROM Citizens;
 
